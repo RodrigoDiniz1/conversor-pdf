@@ -1,0 +1,29 @@
+{
+  "name": "conversor-pdf",
+  "version": "1.0.0",
+  "description": "Aplicacao web para converter PDF em JPG e JPG em PDF",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "dev": "nodemon backend/src/server.js",
+    "start": "node backend/src/server.js"
+  },
+  "keywords": [
+    "pdf",
+    "jpg",
+    "express",
+    "converter"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.99",
+    "archiver": "^7.0.1",
+    "express": "^4.21.2",
+    "fontkit": "^2.0.4",
+    "multer": "^1.4.5-lts.2",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.6.205"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

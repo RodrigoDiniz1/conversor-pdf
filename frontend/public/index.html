@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Central de Ferramentas PDF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=20260421-12" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <button id="brand-home-button" class="brand-mark" type="button" aria-label="Ir para a home">
+          <img src="../images/untitled_design_1.webp" alt="RD" />
+        </button>
+      </header>
+
+      <main class="app-main">
+        <section id="home-view" class="view home-view" aria-labelledby="home-title">
+          <div class="home-hero">
+         
+            <h1 id="home-title" class="home-title">Abra o fluxo certo e <span class="title-accent">converta ou organize</span> seus arquivos em uma tela dedicada.</h1>
+        
+            
+          </div>
+
+          <div class="home-columns">
+            <div id="active-tools-grid" class="tool-grid"></div>
+
+            <div id="organize-tools-grid" class="tool-grid"></div>
+
+            <div id="future-tools-grid" class="tool-grid"></div>
+          </div>
+        </section>
+
+        <section id="tool-view" class="view tool-view is-hidden" aria-labelledby="tool-title">
+          <div class="tool-layout">
+            <div class="tool-copy-panel">
+              <button id="back-home-button" class="back-button" type="button">Voltar para a home</button>
+
+              <p id="tool-kicker" class="tool-kicker"></p>
+              <h1 id="tool-title" class="tool-title"></h1>
+              <p id="tool-description" class="tool-description"></p>
+
+              <div class="tool-meta-block">
+                <span id="tool-status-chip" class="tool-status-chip"></span>
+                <p id="tool-note" class="tool-note"></p>
+              </div>
+            </div>
+
+            <form class="converter-form">
+              <p id="mode-helper" class="mode-helper"></p>
+
+              <input id="file-input" class="hidden-input" type="file" />
+
+              <label id="dropzone" class="upload-card" for="file-input">
+                <span class="upload-icons" aria-hidden="true">
+                  <span id="tool-badge-primary" class="tool-badge tool-badge-primary"></span>
+
+                  <span id="tool-badge-secondary" class="tool-badge tool-badge-secondary"></span>
+                </span>
+
+                <span class="choose-button">
+                  <span class="button-icon" aria-hidden="true"></span>
+                  <span id="choose-button-text">ESCOLHER ARQUIVOS</span>
+                </span>
+
+                <span id="dropzone-subtitle" class="dropzone-subtitle"></span>
+              </label>
+
+              <div id="selection-meta" class="selection-meta is-hidden">
+                <div id="preview-list" class="preview-list"></div>
+                <button id="clear-button" class="reset-button" type="button">Limpar selecao</button>
+              </div>
+
+              <div id="progress-wrapper" class="progress-wrapper is-hidden" aria-hidden="true">
+                <div class="progress-bar">
+                  <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <span id="progress-label" class="progress-label">0%</span>
+              </div>
+
+              <p id="status-message" class="status-message" aria-live="polite"></p>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js?v=20260421-12"></script>
+  </body>
+</html>

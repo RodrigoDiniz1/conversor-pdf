@@ -1,0 +1,22 @@
+node_modules/
+
+# Arquivos temporarios do backend
+backend/tmp/uploads/*
+backend/tmp/output/*
+!backend/tmp/uploads/.gitkeep
+!backend/tmp/output/.gitkeep
+
+# Artefatos locais de teste/depuracao
+/bash.exe.stackdump
+/result.zip
+/test_*.pdf
+/test_*.webp
+headers.txt
+headers_merge.txt
+merged.pdf
+output.bin
+output.txt
+response.bin
+response_body.txt
+response_output.pdf
+upload_log_new.txt
