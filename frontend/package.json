@@ -1,0 +1,12 @@
+{
+  "name": "conversor-pdf-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Frontend estatico para hospedagem generica",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.11"
+  }
+}

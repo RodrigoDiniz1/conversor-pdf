@@ -165,9 +165,53 @@ const splitPdf = createConversionHandler({
   })
 });
 
+const wordToPdf = createConversionHandler({
+  isRequestValid: hasSingleFile,
+  badRequestMessage: 'Nenhum arquivo DOCX foi enviado.',
+  convert: (req) => conversionService.convertWordToPdf(req.file),
+  buildDownload: (req, conversion) => ({
+    filePath: conversion.pdfPath,
+    downloadName: conversion.downloadName,
+    cleanup: () => cleanupPdfOutputArtifacts({
+      uploadPaths: [req.file.path],
+      pdfPath: conversion.pdfPath
+    }),
+    responseHeaders: {
+      'X-Conversion-Warning': conversion.warningMessage
+    }
+  }),
+  buildErrorCleanup: (req, conversion) => cleanupPdfOutputArtifacts({
+    uploadPaths: [req.file.path],
+    pdfPath: conversion?.pdfPath
+  })
+});
+
+const powerpointToPdf = createConversionHandler({
+  isRequestValid: hasSingleFile,
+  badRequestMessage: 'Nenhum arquivo PPTX foi enviado.',
+  convert: (req) => conversionService.convertPowerpointToPdf(req.file),
+  buildDownload: (req, conversion) => ({
+    filePath: conversion.pdfPath,
+    downloadName: conversion.downloadName,
+    cleanup: () => cleanupPdfOutputArtifacts({
+      uploadPaths: [req.file.path],
+      pdfPath: conversion.pdfPath
+    }),
+    responseHeaders: {
+      'X-Conversion-Warning': conversion.warningMessage
+    }
+  }),
+  buildErrorCleanup: (req, conversion) => cleanupPdfOutputArtifacts({
+    uploadPaths: [req.file.path],
+    pdfPath: conversion?.pdfPath
+  })
+});
+
 module.exports = {
   pdfToJpg,
   jpgToPdf,
   mergePdf,
-  splitPdf
+  splitPdf,
+  wordToPdf,
+  powerpointToPdf
 };

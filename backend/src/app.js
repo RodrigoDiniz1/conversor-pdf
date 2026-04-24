@@ -57,6 +57,27 @@ const isAllowedLocalOrigin = (origin) => {
   }
 };
 
+const normalizeOrigin = (origin = '') => origin.trim().replace(/\/+$/, '');
+
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const configuredAllowedOriginPatterns = (process.env.CORS_ALLOWED_ORIGINS || process.env.FRONTEND_ORIGIN || '')
+  .split(',')
+  .map(normalizeOrigin)
+  .filter(Boolean)
+  .map((pattern) => new RegExp(`^${escapeRegExp(pattern).replace(/\\\*/g, '.*')}$`, 'i'));
+
+const isAllowedConfiguredOrigin = (origin) => {
+  if (!origin) {
+    return false;
+  }
+
+  const normalizedOrigin = normalizeOrigin(origin);
+  return configuredAllowedOriginPatterns.some((pattern) => pattern.test(normalizedOrigin));
+};
+
+const isAllowedOrigin = (origin) => isAllowedLocalOrigin(origin) || isAllowedConfiguredOrigin(origin);
+
 const staticOptions = {
   etag: false,
   lastModified: false,
@@ -67,10 +88,10 @@ const staticOptions = {
   }
 };
 
-const applyLocalCors = (req, res, next) => {
+const applyCors = (req, res, next) => {
   const origin = req.get('origin');
 
-  if (origin && isAllowedLocalOrigin(origin)) {
+  if (origin && isAllowedOrigin(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
@@ -88,7 +109,7 @@ const applyLocalCors = (req, res, next) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(applyLocalCors);
+app.use(applyCors);
 app.use(express.static(publicPath, staticOptions));
 app.use('/images', express.static(imagesPath, staticOptions));
 

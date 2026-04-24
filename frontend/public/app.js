@@ -3,6 +3,7 @@ const toolCatalog = {
     id: 'jpg-to-pdf',
     title: 'JPG para PDF',
     cardDescription: 'Agrupe uma ou mais imagens JPG/JPEG e monte um PDF unico com esse material.',
+    cardHighlights: ['Aceita varias imagens', 'Entrega um PDF unico'],
     detailDescription: 'Envie uma ou mais imagens JPG/JPEG e gere um PDF unico em uma tela dedicada para esse fluxo.',
     note: 'A ordem final do PDF segue a ordem em que os arquivos forem enviados nesta etapa.',
     section: 'active',
@@ -31,6 +32,7 @@ const toolCatalog = {
     id: 'pdf-to-jpg',
     title: 'PDF para JPG',
     cardDescription: 'Receba um ZIP com as paginas convertidas em imagens JPG em um fluxo pronto para uso.',
+    cardHighlights: ['Recebe 1 PDF por vez', 'Baixa um ZIP com paginas JPG'],
     detailDescription: 'Envie um PDF por vez e receba um ZIP com todas as paginas convertidas em JPG.',
     note: 'Quando o PDF depender de fontes do sistema, a tela avisa para deixar claro quando a fidelidade tipografica pode variar.',
     section: 'active',
@@ -59,6 +61,7 @@ const toolCatalog = {
     id: 'merge-pdf',
     title: 'Juntar PDF',
     cardDescription: 'Mesclar arquivos PDF em uma unica saida, organizando a ordem antes da exportacao.',
+    cardHighlights: ['Une dois ou mais PDFs', 'Mantem a ordem enviada'],
     detailDescription: 'Envie dois ou mais PDFs e receba um arquivo final unificado em uma tela dedicada a montagem do documento.',
     note: 'A juncao respeita a ordem em que os arquivos forem enviados nesta etapa.',
     section: 'organize',
@@ -87,6 +90,7 @@ const toolCatalog = {
     id: 'split-pdf',
     title: 'Dividir PDF',
     cardDescription: 'Separar um PDF em arquivos individuais por pagina e baixar tudo em um unico ZIP.',
+    cardHighlights: ['Separa pagina por pagina', 'Entrega tudo em ZIP'],
     detailDescription: 'Envie um PDF por vez e receba um ZIP com um arquivo PDF separado para cada pagina do documento.',
     note: 'Cada pagina do PDF original sera exportada como um arquivo individual dentro do ZIP final.',
     section: 'organize',
@@ -114,17 +118,27 @@ const toolCatalog = {
   'word-to-pdf': {
     id: 'word-to-pdf',
     title: 'Word para PDF',
-    cardDescription: 'Tela preparada para DOC e DOCX com instrucoes, upload e status dedicados a esse fluxo.',
-    detailDescription: 'Essa ferramenta vai converter arquivos Word para PDF mantendo um fluxo proprio, com contexto e mensagens especificas.',
-    note: 'Esse card ja abre uma pagina contextualizada. Falta ligar o motor de conversao para documentos Word.',
+    cardDescription: 'Converta um arquivo DOC ou DOCX em PDF com renderizacao real via LibreOffice quando o backend estiver preparado para isso.',
+    cardHighlights: ['Recebe 1 DOC ou DOCX por vez', 'Entrega um PDF unico'],
+    detailDescription: 'Envie um arquivo DOC ou DOCX por vez. Quando o backend tiver LibreOffice, o PDF sai com bem mais fidelidade; sem ele, DOCX ainda pode usar um fallback textual.',
+    note: 'No deploy com LibreOffice, o backend faz a conversao real do documento. Se esse binario nao estiver disponivel, apenas DOCX pode cair no fallback textual.',
     section: 'future',
     kicker: 'Converter para PDF',
-    helper: 'Fluxo planejado para receber arquivos DOC e DOCX e exportar um PDF final.',
-    available: false,
-    status: 'Em breve',
-    lockedMessage: 'Word para PDF ainda nao esta disponivel. A navegacao ja foi preparada para esse fluxo.',
-    lockedSubtitle: 'Fluxo em breve',
-    chooseLabel: 'EM BREVE',
+    helper: 'Envie 1 arquivo DOC ou DOCX por vez para gerar um PDF unico.',
+    available: true,
+    status: 'Disponivel agora',
+    endpoint: '/upload/word-to-pdf',
+    fieldName: 'file',
+    accept: '.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    allowMultiple: false,
+    chooseLabel: 'ESCOLHER WORD',
+    idleSubtitle: 'Ou solte um arquivo DOC ou DOCX aqui',
+    lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
+    processingMessage: 'Enviando o arquivo Word e montando o PDF final...',
+    successMessage: 'Conversao concluida. O PDF foi baixado automaticamente.',
+    readyMessage: () => 'Arquivo Word pronto para conversao.',
+    receivedMessage: () => 'Arquivo Word recebido. A conversao comeca agora.',
+    defaultDownloadName: 'word-convertido.pdf',
     badges: [
       { type: 'word', label: 'DOC' },
       { type: 'pdf', label: 'PDF' }
@@ -133,17 +147,27 @@ const toolCatalog = {
   'powerpoint-to-pdf': {
     id: 'powerpoint-to-pdf',
     title: 'PowerPoint para PDF',
-    cardDescription: 'Tela dedicada para receber apresentacoes e manter o mesmo modelo de pagina contextualizada.',
-    detailDescription: 'Essa opcao vai abrir o caminho para converter apresentacoes para PDF usando um fluxo proprio e mensagens adequadas.',
-    note: 'A estrutura da tela ja existe. O proximo passo sera integrar o conversor para arquivos de apresentacao.',
+    cardDescription: 'Converta um arquivo PPT ou PPTX em PDF com renderizacao real via LibreOffice quando o backend estiver preparado para isso.',
+    cardHighlights: ['Recebe 1 PPT ou PPTX por vez', 'Entrega um PDF unico'],
+    detailDescription: 'Envie um arquivo PPT ou PPTX por vez. Quando o backend tiver LibreOffice, o PDF sai com bem mais fidelidade; sem ele, PPTX ainda pode usar um fallback textual.',
+    note: 'No deploy com LibreOffice, o backend faz a conversao real dos slides. Se esse binario nao estiver disponivel, apenas PPTX pode cair no fallback textual.',
     section: 'future',
     kicker: 'Converter para PDF',
-    helper: 'Fluxo planejado para receber arquivos PPT e PPTX e gerar um PDF final.',
-    available: false,
-    status: 'Em breve',
-    lockedMessage: 'PowerPoint para PDF ainda nao esta disponivel. A pagina contextualizada ja esta preparada.',
-    lockedSubtitle: 'Fluxo em breve',
-    chooseLabel: 'EM BREVE',
+    helper: 'Envie 1 arquivo PPT ou PPTX por vez para gerar um PDF unico.',
+    available: true,
+    status: 'Disponivel agora',
+    endpoint: '/upload/powerpoint-to-pdf',
+    fieldName: 'file',
+    accept: '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    allowMultiple: false,
+    chooseLabel: 'ESCOLHER POWERPOINT',
+    idleSubtitle: 'Ou solte um arquivo PPT ou PPTX aqui',
+    lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
+    processingMessage: 'Enviando o arquivo PowerPoint e montando o PDF final...',
+    successMessage: 'Conversao concluida. O PDF foi baixado automaticamente.',
+    readyMessage: () => 'Arquivo PowerPoint pronto para conversao.',
+    receivedMessage: () => 'Arquivo PowerPoint recebido. A conversao comeca agora.',
+    defaultDownloadName: 'slides-convertidos.pdf',
     badges: [
       { type: 'powerpoint', label: 'PPT' },
       { type: 'pdf', label: 'PDF' }
@@ -157,11 +181,54 @@ const toolSections = {
   future: ['word-to-pdf', 'powerpoint-to-pdf']
 };
 
+const toolExperienceCatalog = {
+  'jpg-to-pdf': {
+    accent: '#d7a113',
+    soft: 'rgba(244, 197, 57, 0.14)',
+    border: 'rgba(244, 197, 57, 0.28)'
+  },
+  'pdf-to-jpg': {
+    accent: '#df572c',
+    soft: 'rgba(255, 109, 61, 0.12)',
+    border: 'rgba(255, 109, 61, 0.24)'
+  },
+  'merge-pdf': {
+    accent: '#4067bf',
+    soft: 'rgba(92, 128, 220, 0.12)',
+    border: 'rgba(92, 128, 220, 0.24)'
+  },
+  'split-pdf': {
+    accent: '#d76b35',
+    soft: 'rgba(237, 139, 87, 0.12)',
+    border: 'rgba(237, 139, 87, 0.24)'
+  },
+  'word-to-pdf': {
+    accent: '#5c80dc',
+    soft: 'rgba(92, 128, 220, 0.12)',
+    border: 'rgba(92, 128, 220, 0.24)'
+  },
+  'powerpoint-to-pdf': {
+    accent: '#ed8b57',
+    soft: 'rgba(237, 139, 87, 0.12)',
+    border: 'rgba(237, 139, 87, 0.24)'
+  }
+};
+
+const SERVER_UNAVAILABLE_MESSAGE = 'Nao foi possivel encontrar o servidor da conversao.';
+const SERVER_UNAVAILABLE_HINTS = [
+  'Confirme se o backend foi publicado ou se o servidor local esta no ar.',
+  'Verifique a URL da API e as configuracoes do ambiente antes do deploy.',
+  'Se o servidor acabou de subir, espere alguns segundos e tente novamente.'
+];
+const DEFAULT_ACTIVE_TOOL_ID = toolSections.active[0];
+
 const state = {
   view: 'home',
   activeToolId: null,
   files: [],
-  isBusy: false
+  isBusy: false,
+  lastResult: null,
+  lastError: null
 };
 
 const LOCAL_API_PORT = '3000';
@@ -169,9 +236,27 @@ let preferredApiBaseUrl = null;
 
 const buildUniqueOrigins = (origins) => Array.from(new Set(origins.filter(Boolean)));
 
+const normalizeApiBaseUrl = (value = '') => value.trim().replace(/\/+$/, '');
+
+const getConfiguredApiBaseUrl = () => normalizeApiBaseUrl(window.APP_CONFIG?.API_BASE_URL || '');
+
+const getServerUnavailableMessage = () => {
+  const configuredApiBaseUrl = getConfiguredApiBaseUrl();
+
+  if (!configuredApiBaseUrl) {
+    return `${SERVER_UNAVAILABLE_MESSAGE} Verifique se a API do backend esta no ar.`;
+  }
+
+  return `${SERVER_UNAVAILABLE_MESSAGE} Verifique se a API configurada em ${configuredApiBaseUrl} esta no ar.`;
+};
+
 const brandHomeButton = document.getElementById('brand-home-button');
 const homeView = document.getElementById('home-view');
 const toolView = document.getElementById('tool-view');
+const successView = document.getElementById('success-view');
+const errorView = document.getElementById('error-view');
+const comingSoonView = document.getElementById('coming-soon-view');
+const toolStage = document.getElementById('tool-stage');
 const activeToolsGrid = document.getElementById('active-tools-grid');
 const organizeToolsGrid = document.getElementById('organize-tools-grid');
 const futureToolsGrid = document.getElementById('future-tools-grid');
@@ -179,7 +264,6 @@ const backHomeButton = document.getElementById('back-home-button');
 const toolKicker = document.getElementById('tool-kicker');
 const toolTitle = document.getElementById('tool-title');
 const toolDescription = document.getElementById('tool-description');
-const toolNote = document.getElementById('tool-note');
 const toolStatusChip = document.getElementById('tool-status-chip');
 const modeHelper = document.getElementById('mode-helper');
 const toolBadgePrimary = document.getElementById('tool-badge-primary');
@@ -195,12 +279,62 @@ const progressWrapper = document.getElementById('progress-wrapper');
 const progressFill = document.getElementById('progress-fill');
 const progressLabel = document.getElementById('progress-label');
 const statusMessage = document.getElementById('status-message');
+const successBackButton = document.getElementById('success-back-button');
+const successTitle = document.getElementById('success-title');
+const successDescription = document.getElementById('success-description');
+const successFileName = document.getElementById('success-file-name');
+const successNote = document.getElementById('success-note');
+const successAgainButton = document.getElementById('success-again-button');
+const successHomeButton = document.getElementById('success-home-button');
+const errorBackButton = document.getElementById('error-back-button');
+const errorTitle = document.getElementById('error-title');
+const errorDescription = document.getElementById('error-description');
+const errorDetail = document.getElementById('error-detail');
+const errorRetryButton = document.getElementById('error-retry-button');
+const errorHomeButton = document.getElementById('error-home-button');
+const comingSoonBackButton = document.getElementById('coming-soon-back-button');
+const comingSoonBadgeStack = document.getElementById('coming-soon-badge-stack');
+const comingSoonKicker = document.getElementById('coming-soon-kicker');
+const comingSoonTitle = document.getElementById('coming-soon-title');
+const comingSoonDescription = document.getElementById('coming-soon-description');
+const comingSoonHomeButton = document.getElementById('coming-soon-home-button');
+const comingSoonActiveButton = document.getElementById('coming-soon-active-button');
+
+const toolGridBySection = {
+  active: activeToolsGrid,
+  organize: organizeToolsGrid,
+  future: futureToolsGrid
+};
+
+const viewRegistry = {
+  home: homeView,
+  tool: toolView,
+  success: successView,
+  error: errorView,
+  comingSoon: comingSoonView
+};
 
 const getCurrentTool = () => toolCatalog[state.activeToolId] || null;
+const getCurrentToolExperience = () => toolExperienceCatalog[state.activeToolId] || {};
 
 const isPdfFile = (file) => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
 const isJpgFile = (file) => ['image/jpeg', 'image/jpg'].includes(file.type) || /\.jpe?g$/i.test(file.name);
+
+const isWordFile = (file) => (
+  ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)
+  || /\.docx?$/i.test(file.name)
+);
+
+const isPowerpointFile = (file) => (
+  ['application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'].includes(file.type)
+  || /\.pptx?$/i.test(file.name)
+);
+
+const isServerUnavailableError = (message = '') => (
+  message.includes(SERVER_UNAVAILABLE_MESSAGE)
+  || message.includes('Nao foi possivel conectar ao servidor.')
+);
 
 const formatSize = (bytes) => {
   if (bytes < 1024) {
@@ -305,7 +439,7 @@ const getFileTypeIconMarkup = (badgeConfig) => {
       <path d="M17 39h30v7a6 6 0 0 1-6 6H23a6 6 0 0 1-6-6z" fill="${theme.accentDark}" opacity="0.35" />
       <path d="M21 18h14" stroke="#d4d8e6" stroke-width="2.4" stroke-linecap="round" />
       <path d="M21 23h20" stroke="#d4d8e6" stroke-width="2.4" stroke-linecap="round" />
-      <text x="32" y="41.5" text-anchor="middle" font-size="10.5" font-weight="800" fill="${theme.text}" font-family="Montserrat, sans-serif">${label}</text>
+      <text x="32" y="41.5" text-anchor="middle" font-size="10.5" font-weight="800" fill="${theme.text}" font-family="Sora, sans-serif">${label}</text>
     </svg>
   `;
 };
@@ -349,9 +483,15 @@ const createToolCardMarkup = (tool) => `
 `;
 
 const renderToolCards = () => {
-  activeToolsGrid.innerHTML = toolSections.active.map((toolId) => createToolCardMarkup(toolCatalog[toolId])).join('');
-  organizeToolsGrid.innerHTML = toolSections.organize.map((toolId) => createToolCardMarkup(toolCatalog[toolId])).join('');
-  futureToolsGrid.innerHTML = toolSections.future.map((toolId) => createToolCardMarkup(toolCatalog[toolId])).join('');
+  Object.entries(toolSections).forEach(([sectionId, toolIds]) => {
+    const targetGrid = toolGridBySection[sectionId];
+
+    if (!targetGrid) {
+      return;
+    }
+
+    targetGrid.innerHTML = toolIds.map((toolId) => createToolCardMarkup(toolCatalog[toolId])).join('');
+  });
 };
 
 const applyToolBadge = (badgeElement, badgeConfig) => {
@@ -361,25 +501,61 @@ const applyToolBadge = (badgeElement, badgeConfig) => {
   badgeElement.innerHTML = `${getBadgeVisualMarkup(badgeConfig, 'large')}${getBadgeMarkerMarkup(badgeConfig, 'large')}`;
 };
 
-const syncView = () => {
-  const isHomeView = state.view === 'home';
+const getStateBadgeStackMarkup = (badges = []) => badges.map((badgeConfig, index) => `
+  <span class="tool-badge ${index === 1 ? 'tool-badge-secondary' : 'tool-badge-primary'}" aria-hidden="true">
+    ${getBadgeVisualMarkup(badgeConfig, 'large')}
+    ${getBadgeMarkerMarkup(badgeConfig, 'large')}
+  </span>
+`).join('');
 
-  homeView.classList.toggle('is-hidden', !isHomeView);
-  toolView.classList.toggle('is-hidden', isHomeView);
-  document.title = isHomeView ? 'Central de Ferramentas PDF' : `${getCurrentTool()?.title || 'Ferramenta'} | Central de Ferramentas PDF`;
+const applyToolStageTheme = (experience) => {
+  toolStage.style.setProperty('--tool-screen-accent', experience.accent || '#ec6238');
+  toolStage.style.setProperty('--tool-screen-soft', experience.soft || 'rgba(244, 111, 72, 0.12)');
+  toolStage.style.setProperty('--tool-screen-border', experience.border || 'rgba(244, 111, 72, 0.18)');
+};
+
+const getDocumentTitle = () => {
+  const tool = getCurrentTool();
+
+  if (state.view === 'home') {
+    return 'Central de Ferramentas PDF';
+  }
+
+  if (state.view === 'success') {
+    return `Download pronto | ${tool?.title || 'Ferramenta'}`;
+  }
+
+  if (state.view === 'error') {
+    return `Servidor indisponivel | ${tool?.title || 'Ferramenta'}`;
+  }
+
+  if (state.view === 'comingSoon') {
+    return `Em breve | ${tool?.title || 'Ferramenta'}`;
+  }
+
+  return `${tool?.title || 'Ferramenta'} | Central de Ferramentas PDF`;
+};
+
+const syncView = () => {
+  Object.entries(viewRegistry).forEach(([viewName, viewElement]) => {
+    viewElement.classList.toggle('is-hidden', state.view !== viewName);
+  });
+
+  document.title = getDocumentTitle();
 };
 
 const syncToolView = () => {
   const tool = getCurrentTool();
+  const experience = getCurrentToolExperience();
 
   if (!tool) {
     return;
   }
 
+  applyToolStageTheme(experience);
   toolKicker.textContent = tool.kicker;
   toolTitle.textContent = tool.title;
-  toolDescription.textContent = tool.detailDescription;
-  toolNote.textContent = tool.note;
+  toolDescription.textContent = tool.detailDescription || tool.cardDescription;
   toolStatusChip.textContent = tool.status;
   toolStatusChip.className = `tool-status-chip ${tool.available ? 'is-available' : 'is-locked'}`;
   modeHelper.textContent = tool.helper;
@@ -394,8 +570,80 @@ const syncToolView = () => {
   dropzone.classList.toggle('is-busy', state.isBusy);
   dropzone.classList.toggle('is-locked', !tool.available);
   dropzone.setAttribute('aria-disabled', String(!tool.available));
+  dropzone.setAttribute('aria-busy', String(state.isBusy));
   chooseButtonText.textContent = state.isBusy ? 'PROCESSANDO...' : tool.chooseLabel;
   dropzoneSubtitle.textContent = state.isBusy ? 'Seus arquivos estao sendo processados' : (tool.available ? tool.idleSubtitle : tool.lockedSubtitle);
+};
+
+const syncSuccessView = () => {
+  const tool = getCurrentTool();
+  const result = state.lastResult || {};
+
+  if (!tool) {
+    return;
+  }
+
+  successTitle.textContent = `${tool.title} concluido`;
+  successDescription.textContent = tool.successMessage || 'Seu arquivo foi gerado e o download ja foi iniciado.';
+  successFileName.textContent = result.fileName || tool.defaultDownloadName;
+  successNote.textContent = result.warningMessage || '';
+  successNote.classList.toggle('is-hidden', !successNote.textContent);
+};
+
+const syncErrorView = () => {
+  const tool = getCurrentTool();
+
+  errorTitle.textContent = `Nao foi possivel concluir ${tool?.title || 'essa conversao'}`;
+  errorDescription.textContent = 'O backend nao respondeu a tempo para concluir o envio.';
+  errorDetail.textContent = state.lastError?.message || SERVER_UNAVAILABLE_MESSAGE;
+};
+
+const syncComingSoonView = () => {
+  const tool = getCurrentTool();
+  const experience = getCurrentToolExperience();
+
+  if (!tool) {
+    return;
+  }
+
+  comingSoonBadgeStack.innerHTML = getStateBadgeStackMarkup(tool.badges);
+  comingSoonKicker.textContent = tool.kicker;
+  comingSoonTitle.textContent = experience.comingSoonTitle || `${tool.title} chega em breve`;
+  comingSoonDescription.textContent = experience.comingSoonDescription || 'Esse fluxo ainda nao esta disponivel.';
+};
+
+const showToolView = () => {
+  state.view = 'tool';
+  syncToolView();
+  renderPreviews();
+  syncView();
+};
+
+const showSuccessView = (result) => {
+  state.lastResult = result;
+  resetSelection({ keepStatus: true });
+  setStatus('');
+  state.view = 'success';
+  syncSuccessView();
+  syncView();
+};
+
+const showErrorView = (message) => {
+  const tool = getCurrentTool();
+
+  state.lastError = {
+    message,
+    toolId: tool?.id || null
+  };
+
+  if (tool) {
+    dropzoneSubtitle.textContent = tool.readyMessage(state.files.length);
+  }
+
+  setStatus('');
+  state.view = 'error';
+  syncErrorView();
+  syncView();
 };
 
 const setBusy = (isBusy) => {
@@ -420,20 +668,31 @@ const resetSelection = ({ keepStatus = false } = {}) => {
 const goHome = () => {
   state.view = 'home';
   state.activeToolId = null;
+  state.lastResult = null;
+  state.lastError = null;
   resetSelection();
   syncView();
 };
 
 const openTool = (toolId) => {
   state.activeToolId = toolId;
-  state.view = 'tool';
+  state.lastResult = null;
+  state.lastError = null;
   resetSelection();
-  syncView();
 
   const tool = getCurrentTool();
-  if (!tool.available) {
-    setStatus(tool.lockedMessage, 'warning');
+  if (!tool) {
+    return;
   }
+
+  if (!tool.available) {
+    state.view = 'comingSoon';
+    syncComingSoonView();
+    syncView();
+    return;
+  }
+
+  showToolView();
 };
 
 const renderPreview = (file) => {
@@ -450,7 +709,7 @@ const renderPreview = (file) => {
     visual.addEventListener('load', () => URL.revokeObjectURL(visual.src), { once: true });
   } else {
     visual.className = 'preview-icon';
-    visual.src = '../images/pdf.webp';
+    visual.src = getBadgeImagePath(tool?.badges?.[0]?.type) || '../images/pdf.webp';
   }
 
   item.appendChild(visual);
@@ -515,6 +774,12 @@ const buildLocalApiOrigins = () => {
 };
 
 const getApiOriginCandidates = () => {
+  const configuredApiBaseUrl = getConfiguredApiBaseUrl();
+
+  if (configuredApiBaseUrl) {
+    return [configuredApiBaseUrl];
+  }
+
   const localOrigins = buildLocalApiOrigins();
 
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
@@ -627,19 +892,11 @@ const uploadWithProgress = async () => {
     throw new Error(lastFailure.message);
   }
 
-  throw new Error('Nao foi possivel encontrar o servidor da conversao. Verifique se o backend esta rodando em http://localhost:3000.');
+  throw new Error(getServerUnavailableMessage());
 };
 
-const getValidatedFilesForCurrentTool = (files) => {
-  const tool = getCurrentTool();
-  const pdfFiles = files.filter(isPdfFile);
-  const jpgFiles = files.filter(isJpgFile);
-
-  if (!tool?.available) {
-    throw new Error(tool?.lockedMessage || 'Esta ferramenta ainda nao esta disponivel.');
-  }
-
-  if (tool.id === 'pdf-to-jpg') {
+const toolFileValidators = {
+  'pdf-to-jpg': (files, { pdfFiles, jpgFiles }) => {
     if (pdfFiles.length === 1 && pdfFiles.length === files.length) {
       return [pdfFiles[0]];
     }
@@ -653,9 +910,8 @@ const getValidatedFilesForCurrentTool = (files) => {
     }
 
     throw new Error('Selecione um arquivo PDF valido.');
-  }
-
-  if (tool.id === 'jpg-to-pdf') {
+  },
+  'jpg-to-pdf': (files, { pdfFiles, jpgFiles }) => {
     if (jpgFiles.length === files.length && jpgFiles.length > 0) {
       return files;
     }
@@ -665,9 +921,8 @@ const getValidatedFilesForCurrentTool = (files) => {
     }
 
     throw new Error('Selecione apenas imagens JPG/JPEG validas.');
-  }
-
-  if (tool.id === 'merge-pdf') {
+  },
+  'merge-pdf': (files, { pdfFiles, jpgFiles }) => {
     if (pdfFiles.length === files.length && pdfFiles.length >= 2) {
       return files;
     }
@@ -681,9 +936,8 @@ const getValidatedFilesForCurrentTool = (files) => {
     }
 
     throw new Error('Selecione apenas arquivos PDF validos.');
-  }
-
-  if (tool.id === 'split-pdf') {
+  },
+  'split-pdf': (files, { pdfFiles, jpgFiles }) => {
     if (pdfFiles.length === 1 && pdfFiles.length === files.length) {
       return [pdfFiles[0]];
     }
@@ -697,6 +951,51 @@ const getValidatedFilesForCurrentTool = (files) => {
     }
 
     throw new Error('Selecione um arquivo PDF valido.');
+  },
+  'word-to-pdf': (files, { wordFiles }) => {
+    if (wordFiles.length === 1 && wordFiles.length === files.length) {
+      return [wordFiles[0]];
+    }
+
+    if (files.length > 1) {
+      throw new Error('Para converter Word em PDF, envie apenas um arquivo DOC ou DOCX por vez.');
+    }
+
+    throw new Error('Selecione um arquivo DOC ou DOCX valido.');
+  },
+  'powerpoint-to-pdf': (files, { powerpointFiles }) => {
+    if (powerpointFiles.length === 1 && powerpointFiles.length === files.length) {
+      return [powerpointFiles[0]];
+    }
+
+    if (files.length > 1) {
+      throw new Error('Para converter PowerPoint em PDF, envie apenas um arquivo PPT ou PPTX por vez.');
+    }
+
+    throw new Error('Selecione um arquivo PPT ou PPTX valido.');
+  }
+};
+
+const getValidatedFilesForCurrentTool = (files) => {
+  const tool = getCurrentTool();
+  const pdfFiles = files.filter(isPdfFile);
+  const jpgFiles = files.filter(isJpgFile);
+  const wordFiles = files.filter(isWordFile);
+  const powerpointFiles = files.filter(isPowerpointFile);
+
+  if (!tool?.available) {
+    throw new Error(tool?.lockedMessage || 'Esta ferramenta ainda nao esta disponivel.');
+  }
+
+  const validateFiles = toolFileValidators[tool.id];
+
+  if (validateFiles) {
+    return validateFiles(files, {
+      pdfFiles,
+      jpgFiles,
+      wordFiles,
+      powerpointFiles
+    });
   }
 
   throw new Error(tool.lockedMessage || 'Esta ferramenta ainda nao esta disponivel.');
@@ -718,15 +1017,16 @@ const startConversion = async () => {
     const { blob, fileName, warningMessage } = await uploadWithProgress();
     updateProgress(100);
     triggerDownload(blob, fileName);
-    setStatus(
-      warningMessage ? `${tool.successMessage} ${warningMessage}` : tool.successMessage,
-      warningMessage ? 'warning' : 'success'
-    );
-    dropzoneSubtitle.textContent = 'Selecione novos arquivos para converter novamente';
+    showSuccessView({ fileName, warningMessage });
   } catch (error) {
     resetProgress();
-    setStatus(error.message, 'error');
-    dropzoneSubtitle.textContent = tool.idleSubtitle;
+
+    if (isServerUnavailableError(error.message)) {
+      showErrorView(error.message);
+    } else {
+      setStatus(error.message, 'error');
+      dropzoneSubtitle.textContent = tool.idleSubtitle;
+    }
   } finally {
     setBusy(false);
   }
@@ -772,12 +1072,29 @@ const handleToolCardClick = (event) => {
 renderToolCards();
 syncView();
 
-activeToolsGrid.addEventListener('click', handleToolCardClick);
-organizeToolsGrid.addEventListener('click', handleToolCardClick);
-futureToolsGrid.addEventListener('click', handleToolCardClick);
+homeView.addEventListener('click', handleToolCardClick);
 
 brandHomeButton.addEventListener('click', goHome);
 backHomeButton.addEventListener('click', goHome);
+successBackButton.addEventListener('click', goHome);
+successHomeButton.addEventListener('click', goHome);
+successAgainButton.addEventListener('click', () => {
+  state.lastResult = null;
+  resetSelection();
+  showToolView();
+});
+errorBackButton.addEventListener('click', goHome);
+errorHomeButton.addEventListener('click', goHome);
+errorRetryButton.addEventListener('click', async () => {
+  state.lastError = null;
+  showToolView();
+  await startConversion();
+});
+comingSoonBackButton.addEventListener('click', goHome);
+comingSoonHomeButton.addEventListener('click', goHome);
+comingSoonActiveButton.addEventListener('click', () => {
+  openTool(DEFAULT_ACTIVE_TOOL_ID);
+});
 
 dropzone.addEventListener('click', (event) => {
   const tool = getCurrentTool();

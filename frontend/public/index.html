@@ -3,92 +3,171 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Central de Ferramentas PDF</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=20260421-12" />
+    <title>Converter PDF e JPG | Juntar, dividir e organizar arquivos</title>
+    <meta name="description" content="Converta PDF para JPG, JPG para PDF, junte arquivos PDF e divida paginas em uma interface direta, com upload imediato e download automatico." />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#142434" />
+    <meta name="application-name" content="RD file studio" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Converter PDF e JPG | RD file studio" />
+    <meta property="og:description" content="Ferramentas para converter PDF em JPG, JPG em PDF, juntar PDF e dividir paginas em uma interface clara e pronta para deploy." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preload" as="image" href="../images/untitled_design_1.webp" fetchpriority="high" />
+    <link rel="stylesheet" href="styles.css?v=20260422-06" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "RD file studio",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "Aplicacao web para converter PDF para JPG, JPG para PDF, juntar PDFs e dividir paginas em arquivos separados.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "BRL"
+        }
+      }
+    </script>
   </head>
   <body>
     <div class="page-shell">
       <header class="site-header">
         <button id="brand-home-button" class="brand-mark" type="button" aria-label="Ir para a home">
-          <img src="../images/untitled_design_1.webp" alt="RD" />
+          <img src="../images/untitled_design_1.webp" alt="RD file studio" width="116" height="116" fetchpriority="high" decoding="async" />
         </button>
       </header>
 
       <main class="app-main">
         <section id="home-view" class="view home-view" aria-labelledby="home-title">
           <div class="home-hero">
-         
             <h1 id="home-title" class="home-title">Abra o fluxo certo e <span class="title-accent">converta ou organize</span> seus arquivos em uma tela dedicada.</h1>
-        
-            
           </div>
 
           <div class="home-columns">
             <div id="active-tools-grid" class="tool-grid"></div>
-
             <div id="organize-tools-grid" class="tool-grid"></div>
-
             <div id="future-tools-grid" class="tool-grid"></div>
           </div>
         </section>
 
         <section id="tool-view" class="view tool-view is-hidden" aria-labelledby="tool-title">
-          <div class="tool-layout">
-            <div class="tool-copy-panel">
-              <button id="back-home-button" class="back-button" type="button">Voltar para a home</button>
+          <div id="tool-stage" class="tool-stage">
+            <div class="tool-layout">
+              <div class="tool-copy-panel">
+                <button id="back-home-button" class="back-button" type="button">Voltar para a home</button>
 
-              <p id="tool-kicker" class="tool-kicker"></p>
-              <h1 id="tool-title" class="tool-title"></h1>
-              <p id="tool-description" class="tool-description"></p>
+                <p id="tool-kicker" class="tool-kicker"></p>
+                <h1 id="tool-title" class="tool-title"></h1>
+                <p id="tool-description" class="tool-description"></p>
 
-              <div class="tool-meta-block">
-                <span id="tool-status-chip" class="tool-status-chip"></span>
-                <p id="tool-note" class="tool-note"></p>
+                <div class="tool-meta-block">
+                  <span id="tool-status-chip" class="tool-status-chip"></span>
+                </div>
               </div>
+
+              <form class="converter-form">
+                <p id="mode-helper" class="mode-helper"></p>
+
+                <input id="file-input" class="hidden-input" type="file" />
+
+                <label id="dropzone" class="upload-card" for="file-input">
+                  <span class="upload-icons" aria-hidden="true">
+                    <span id="tool-badge-primary" class="tool-badge tool-badge-primary"></span>
+
+                    <span id="tool-badge-secondary" class="tool-badge tool-badge-secondary"></span>
+                  </span>
+
+                  <span class="choose-button">
+                    <span class="button-icon" aria-hidden="true"></span>
+                    <span id="choose-button-text">ESCOLHER ARQUIVOS</span>
+                  </span>
+
+                  <span id="dropzone-subtitle" class="dropzone-subtitle"></span>
+                </label>
+
+                <div id="selection-meta" class="selection-meta is-hidden">
+                  <div id="preview-list" class="preview-list"></div>
+                  <button id="clear-button" class="reset-button" type="button">Limpar selecao</button>
+                </div>
+
+                <div id="progress-wrapper" class="progress-wrapper is-hidden" aria-hidden="true">
+                  <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                  </div>
+                  <span id="progress-label" class="progress-label">0%</span>
+                </div>
+
+                <p id="status-message" class="status-message" aria-live="polite"></p>
+              </form>
             </div>
 
-            <form class="converter-form">
-              <p id="mode-helper" class="mode-helper"></p>
+          </div>
+        </section>
 
-              <input id="file-input" class="hidden-input" type="file" />
+        <section id="success-view" class="view state-view is-hidden" aria-labelledby="success-title">
+          <div class="state-shell is-success-shell">
+            <button id="success-back-button" class="back-button" type="button">Voltar para a home</button>
 
-              <label id="dropzone" class="upload-card" for="file-input">
-                <span class="upload-icons" aria-hidden="true">
-                  <span id="tool-badge-primary" class="tool-badge tool-badge-primary"></span>
+            <div class="state-hero">
+              <p class="tool-kicker">Conversao concluida</p>
+              <h1 id="success-title" class="state-title"></h1>
+              <p id="success-description" class="state-description"></p>
 
-                  <span id="tool-badge-secondary" class="tool-badge tool-badge-secondary"></span>
-                </span>
-
-                <span class="choose-button">
-                  <span class="button-icon" aria-hidden="true"></span>
-                  <span id="choose-button-text">ESCOLHER ARQUIVOS</span>
-                </span>
-
-                <span id="dropzone-subtitle" class="dropzone-subtitle"></span>
-              </label>
-
-              <div id="selection-meta" class="selection-meta is-hidden">
-                <div id="preview-list" class="preview-list"></div>
-                <button id="clear-button" class="reset-button" type="button">Limpar selecao</button>
+              <div class="state-file-pill">
+                <span class="state-file-label">Arquivo gerado</span>
+                <strong id="success-file-name" class="state-file-name"></strong>
               </div>
 
-              <div id="progress-wrapper" class="progress-wrapper is-hidden" aria-hidden="true">
-                <div class="progress-bar">
-                  <div id="progress-fill" class="progress-fill"></div>
-                </div>
-                <span id="progress-label" class="progress-label">0%</span>
-              </div>
+              <p id="success-note" class="state-note"></p>
 
-              <p id="status-message" class="status-message" aria-live="polite"></p>
-            </form>
+              <div class="state-actions">
+                <button id="success-again-button" class="primary-action" type="button">Nova conversao</button>
+                <button id="success-home-button" class="secondary-action" type="button">Ir para a home</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="error-view" class="view state-view is-hidden" aria-labelledby="error-title">
+          <div class="state-shell is-error-shell">
+            <button id="error-back-button" class="back-button" type="button">Voltar para a home</button>
+
+            <div class="state-hero">
+              <p class="tool-kicker">Servidor indisponivel</p>
+              <h1 id="error-title" class="state-title"></h1>
+              <p id="error-description" class="state-description"></p>
+              <p id="error-detail" class="state-note"></p>
+
+              <div class="state-actions">
+                <button id="error-retry-button" class="primary-action" type="button">Tentar novamente</button>
+                <button id="error-home-button" class="secondary-action" type="button">Ir para a home</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="coming-soon-view" class="view state-view is-hidden" aria-labelledby="coming-soon-title">
+          <div class="state-shell is-coming-soon-shell">
+            <button id="coming-soon-back-button" class="back-button" type="button">Voltar para a home</button>
+
+            <div class="state-hero">
+              <div id="coming-soon-badge-stack" class="state-badge-stack" aria-hidden="true"></div>
+              <p id="coming-soon-kicker" class="tool-kicker"></p>
+              <h1 id="coming-soon-title" class="state-title"></h1>
+              <p id="coming-soon-description" class="state-description"></p>
+
+              <div class="state-actions">
+                <button id="coming-soon-home-button" class="primary-action" type="button">Voltar para a home</button>
+                <button id="coming-soon-active-button" class="secondary-action" type="button">Ver ferramenta ativa</button>
+              </div>
+            </div>
           </div>
         </section>
       </main>
     </div>
 
-    <script src="app.js?v=20260421-12"></script>
+    <script src="config.js?v=20260422-06"></script>
+    <script src="app.js?v=20260422-06"></script>
   </body>
 </html>

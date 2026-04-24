@@ -7,6 +7,16 @@ const uploadDir = path.join(__dirname, '..', '..', 'tmp', 'uploads');
 const maxFileSize = 10 * 1024 * 1024;
 const jpgExtensions = new Set(['.jpg', '.jpeg']);
 const jpgMimeTypes = new Set(['image/jpeg', 'image/jpg']);
+const wordExtensions = new Set(['.doc', '.docx']);
+const wordMimeTypes = new Set([
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+]);
+const powerpointExtensions = new Set(['.ppt', '.pptx']);
+const powerpointMimeTypes = new Set([
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+]);
 
 ensureDirectory(uploadDir);
 
@@ -36,6 +46,16 @@ const fileRules = {
   jpg: {
     errorMessage: 'Envie apenas imagens JPG ou JPEG validas.',
     isValid: (file) => jpgExtensions.has(getFileExtension(file)) || jpgMimeTypes.has(file.mimetype)
+  },
+  word: {
+    errorMessage: 'Envie um arquivo DOC ou DOCX valido.',
+    isValid: (file) => wordExtensions.has(getFileExtension(file)) || wordMimeTypes.has(file.mimetype)
+  },
+  powerpoint: {
+    errorMessage: 'Envie um arquivo PPT ou PPTX valido.',
+    isValid: (file) => (
+      powerpointExtensions.has(getFileExtension(file)) || powerpointMimeTypes.has(file.mimetype)
+    )
   }
 };
 
@@ -98,5 +118,13 @@ module.exports = {
     maxCount: 20,
     multiple: true,
     rule: fileRules.jpg
+  }),
+  handleWordUpload: createUploadHandler({
+    fieldName: 'file',
+    rule: fileRules.word
+  }),
+  handlePowerpointUpload: createUploadHandler({
+    fieldName: 'file',
+    rule: fileRules.powerpoint
   })
 };
