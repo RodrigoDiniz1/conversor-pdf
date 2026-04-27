@@ -46,7 +46,7 @@ backend/
 - Conversao de um arquivo DOCX em um novo PDF textual
 - Conversao de um arquivo PPTX em um novo PDF textual
 - Download automatico do arquivo final
-- Limite de 10MB por arquivo
+- Limite de 100MB por arquivo
 - Limpeza de arquivos temporarios apos a resposta
 
 ## Pre-requisitos
@@ -137,7 +137,15 @@ npm install
 npm run dev
 ```
 
-Abra http://localhost:3000 no navegador.
+O comando `npm run dev` agora sobe o backend com recarga automatica, espera a rota de healthcheck responder e abre a aplicacao em `http://localhost:3000` no navegador padrao.
+
+Se voce quiser subir apenas o servidor, sem abrir navegador automaticamente:
+
+```bash
+npm run dev:server
+```
+
+Se quiser manter o navegador fechado mesmo usando o fluxo completo, rode com `NO_OPEN_BROWSER=1`.
 
 ## Endpoints
 

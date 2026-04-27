@@ -4,7 +4,8 @@
   "description": "Aplicacao web para converter PDF em JPG e JPG em PDF",
   "main": "backend/src/server.js",
   "scripts": {
-    "dev": "nodemon backend/src/server.js",
+    "dev": "node scripts/dev-app.js",
+    "dev:server": "nodemon backend/src/server.js",
     "start": "node backend/src/server.js"
   },
   "keywords": [

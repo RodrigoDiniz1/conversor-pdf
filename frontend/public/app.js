@@ -2,7 +2,7 @@ const toolCatalog = {
   'jpg-to-pdf': {
     id: 'jpg-to-pdf',
     title: 'JPG para PDF',
-    cardDescription: 'Agrupe uma ou mais imagens JPG/JPEG e monte um PDF unico com esse material.',
+    cardDescription: 'Converta uma ou mais imagens JPG ou JPEG em um arquivo PDF unico.',
     cardHighlights: ['Aceita varias imagens', 'Entrega um PDF unico'],
     detailDescription: 'Envie uma ou mais imagens JPG/JPEG e gere um PDF unico em uma tela dedicada para esse fluxo.',
     note: 'A ordem final do PDF segue a ordem em que os arquivos forem enviados nesta etapa.',
@@ -15,7 +15,7 @@ const toolCatalog = {
     fieldName: 'files',
     accept: '.jpg,.jpeg,image/jpeg,image/jpg',
     allowMultiple: true,
-    chooseLabel: 'ESCOLHER IMAGENS',
+    chooseLabel: 'Selecionar imagens JPG',
     idleSubtitle: 'Ou solte imagens JPG/JPEG aqui',
     lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
     processingMessage: 'Enviando as imagens e montando o PDF final...',
@@ -31,7 +31,7 @@ const toolCatalog = {
   'pdf-to-jpg': {
     id: 'pdf-to-jpg',
     title: 'PDF para JPG',
-    cardDescription: 'Receba um ZIP com as paginas convertidas em imagens JPG em um fluxo pronto para uso.',
+    cardDescription: 'Transforme seu PDF em imagens JPG e baixe tudo em um unico arquivo ZIP.',
     cardHighlights: ['Recebe 1 PDF por vez', 'Baixa um ZIP com paginas JPG'],
     detailDescription: 'Envie um PDF por vez e receba um ZIP com todas as paginas convertidas em JPG.',
     note: 'Quando o PDF depender de fontes do sistema, a tela avisa para deixar claro quando a fidelidade tipografica pode variar.',
@@ -44,7 +44,7 @@ const toolCatalog = {
     fieldName: 'file',
     accept: '.pdf,application/pdf',
     allowMultiple: false,
-    chooseLabel: 'ESCOLHER PDF',
+    chooseLabel: 'Selecionar arquivo PDF',
     idleSubtitle: 'Ou solte um PDF aqui',
     lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
     processingMessage: 'Enviando o PDF e convertendo as paginas em JPG...',
@@ -60,7 +60,7 @@ const toolCatalog = {
   'merge-pdf': {
     id: 'merge-pdf',
     title: 'Juntar PDF',
-    cardDescription: 'Mesclar arquivos PDF em uma unica saida, organizando a ordem antes da exportacao.',
+    cardDescription: 'Mescle dois ou mais arquivos PDF em um unico documento final.',
     cardHighlights: ['Une dois ou mais PDFs', 'Mantem a ordem enviada'],
     detailDescription: 'Envie dois ou mais PDFs e receba um arquivo final unificado em uma tela dedicada a montagem do documento.',
     note: 'A juncao respeita a ordem em que os arquivos forem enviados nesta etapa.',
@@ -73,7 +73,7 @@ const toolCatalog = {
     fieldName: 'files',
     accept: '.pdf,application/pdf',
     allowMultiple: true,
-    chooseLabel: 'ESCOLHER PDFS',
+    chooseLabel: 'Selecionar arquivos PDF',
     idleSubtitle: 'Ou solte dois ou mais PDFs aqui',
     lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
     processingMessage: 'Enviando os PDFs e juntando as paginas...',
@@ -89,7 +89,7 @@ const toolCatalog = {
   'split-pdf': {
     id: 'split-pdf',
     title: 'Dividir PDF',
-    cardDescription: 'Separar um PDF em arquivos individuais por pagina e baixar tudo em um unico ZIP.',
+    cardDescription: 'Separe um PDF por paginas e baixe tudo organizado em um unico ZIP.',
     cardHighlights: ['Separa pagina por pagina', 'Entrega tudo em ZIP'],
     detailDescription: 'Envie um PDF por vez e receba um ZIP com um arquivo PDF separado para cada pagina do documento.',
     note: 'Cada pagina do PDF original sera exportada como um arquivo individual dentro do ZIP final.',
@@ -102,7 +102,7 @@ const toolCatalog = {
     fieldName: 'file',
     accept: '.pdf,application/pdf',
     allowMultiple: false,
-    chooseLabel: 'ESCOLHER PDF',
+    chooseLabel: 'Selecionar arquivo PDF',
     idleSubtitle: 'Ou solte um PDF aqui',
     lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
     processingMessage: 'Enviando o PDF e separando as paginas em arquivos individuais...',
@@ -118,7 +118,7 @@ const toolCatalog = {
   'word-to-pdf': {
     id: 'word-to-pdf',
     title: 'Word para PDF',
-    cardDescription: 'Converta um arquivo DOC ou DOCX em PDF com renderizacao real via LibreOffice quando o backend estiver preparado para isso.',
+    cardDescription: 'Converta documentos Word em PDF com um fluxo direto e pronto para download.',
     cardHighlights: ['Recebe 1 DOC ou DOCX por vez', 'Entrega um PDF unico'],
     detailDescription: 'Envie um arquivo DOC ou DOCX por vez. Quando o backend tiver LibreOffice, o PDF sai com bem mais fidelidade; sem ele, DOCX ainda pode usar um fallback textual.',
     note: 'No deploy com LibreOffice, o backend faz a conversao real do documento. Se esse binario nao estiver disponivel, apenas DOCX pode cair no fallback textual.',
@@ -131,7 +131,7 @@ const toolCatalog = {
     fieldName: 'file',
     accept: '.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     allowMultiple: false,
-    chooseLabel: 'ESCOLHER WORD',
+    chooseLabel: 'Selecionar arquivo Word',
     idleSubtitle: 'Ou solte um arquivo DOC ou DOCX aqui',
     lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
     processingMessage: 'Enviando o arquivo Word e montando o PDF final...',
@@ -147,7 +147,7 @@ const toolCatalog = {
   'powerpoint-to-pdf': {
     id: 'powerpoint-to-pdf',
     title: 'PowerPoint para PDF',
-    cardDescription: 'Converta um arquivo PPT ou PPTX em PDF com renderizacao real via LibreOffice quando o backend estiver preparado para isso.',
+    cardDescription: 'Converta apresentacoes PowerPoint em PDF mantendo a leitura slide a slide.',
     cardHighlights: ['Recebe 1 PPT ou PPTX por vez', 'Entrega um PDF unico'],
     detailDescription: 'Envie um arquivo PPT ou PPTX por vez. Quando o backend tiver LibreOffice, o PDF sai com bem mais fidelidade; sem ele, PPTX ainda pode usar um fallback textual.',
     note: 'No deploy com LibreOffice, o backend faz a conversao real dos slides. Se esse binario nao estiver disponivel, apenas PPTX pode cair no fallback textual.',
@@ -160,7 +160,7 @@ const toolCatalog = {
     fieldName: 'file',
     accept: '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation',
     allowMultiple: false,
-    chooseLabel: 'ESCOLHER POWERPOINT',
+    chooseLabel: 'Selecionar arquivo PowerPoint',
     idleSubtitle: 'Ou solte um arquivo PPT ou PPTX aqui',
     lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
     processingMessage: 'Enviando o arquivo PowerPoint e montando o PDF final...',
@@ -476,9 +476,6 @@ const createToolCardMarkup = (tool) => `
     </span>
     <h3 class="tool-card-title">${tool.title}</h3>
     <p class="tool-card-description">${tool.cardDescription}</p>
-    <span class="tool-card-footer">
-      <span class="tool-card-pill ${tool.available ? 'is-available' : 'is-locked'}">${tool.status}</span>
-    </span>
   </button>
 `;
 
@@ -541,6 +538,7 @@ const syncView = () => {
     viewElement.classList.toggle('is-hidden', state.view !== viewName);
   });
 
+  document.body.dataset.view = state.view;
   document.title = getDocumentTitle();
 };
 

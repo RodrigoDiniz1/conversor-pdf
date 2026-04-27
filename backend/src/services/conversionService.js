@@ -990,13 +990,17 @@ const renderOfficeParagraphsToPdf = async ({ pdfDoc, pageSize, title, subtitle, 
 const convertOfficeTextToPdf = async (file, {
   supportedExtensions,
   invalidFileMessage,
-  emptyContentMessage,
   failureMessage,
-  subtitle,
-  pageSize,
-  parseConfig,
-  warningMessage
+  textFallback
 }) => {
+  const {
+    emptyContentMessage,
+    subtitle,
+    pageSize,
+    parseConfig,
+    warningMessage
+  } = textFallback;
+
   if (!hasSupportedOfficeExtension(file.originalname, supportedExtensions)) {
     throw buildInvalidFileError(invalidFileMessage);
   }
@@ -1041,15 +1045,10 @@ const convertOfficeTextToPdf = async (file, {
 
 const convertOfficeDocumentToPdf = async (file, {
   supportedExtensions,
-  textFallbackExtensions,
   invalidFileMessage,
-  emptyContentMessage,
   failureMessage,
   unavailableMessage,
-  subtitle,
-  pageSize,
-  parseConfig,
-  warningMessage
+  textFallback
 }) => {
   if (!hasSupportedOfficeExtension(file.originalname, supportedExtensions)) {
     throw buildInvalidFileError(invalidFileMessage);
@@ -1064,23 +1063,58 @@ const convertOfficeDocumentToPdf = async (file, {
   } catch (error) {
     if (
       isOfficeBinaryUnavailableError(error)
-      && hasSupportedOfficeExtension(file.originalname, textFallbackExtensions)
+      && hasSupportedOfficeExtension(file.originalname, textFallback.supportedExtensions)
     ) {
       return convertOfficeTextToPdf(file, {
-        supportedExtensions: textFallbackExtensions,
+        supportedExtensions: textFallback.supportedExtensions,
         invalidFileMessage,
-        emptyContentMessage,
         failureMessage,
-        subtitle,
-        pageSize,
-        parseConfig,
-        warningMessage
+        textFallback
       });
     }
 
     throw error;
   }
 };
+
+const createOfficeConverter = (profile) => async (file) => convertOfficeDocumentToPdf(file, profile);
+
+const OFFICE_CONVERSION_PROFILES = Object.freeze({
+  word: {
+    supportedExtensions: WORD_EXTENSIONS,
+    invalidFileMessage: 'Envie um arquivo DOC ou DOCX valido.',
+    failureMessage: 'Falha ao converter o arquivo Word em PDF.',
+    unavailableMessage: 'A conversao de arquivos Word exige LibreOffice no servidor. Configure o binario em LIBREOFFICE_PATH ou use a imagem de deploy com LibreOffice.',
+    textFallback: {
+      supportedExtensions: WORD_TEXT_FALLBACK_EXTENSIONS,
+      emptyContentMessage: 'Nao foi possivel extrair texto do arquivo enviado. Quando o LibreOffice nao estiver disponivel, a conversao de Word para PDF so consegue recriar o PDF a partir do texto do DOCX.',
+      subtitle: 'PDF recriado a partir do conteudo textual do arquivo DOCX.',
+      pageSize: [DEFAULT_PDF_PAGE_WIDTH, DEFAULT_PDF_PAGE_HEIGHT],
+      parseConfig: {
+        includeBreakNodes: true,
+        newlineDelimiter: '\n\n'
+      },
+      warningMessage: 'O LibreOffice nao estava disponivel. O PDF final foi recriado a partir do texto extraido do DOCX, por isso fontes, tabelas complexas, imagens e a diagramacao original podem variar.'
+    }
+  },
+  powerpoint: {
+    supportedExtensions: POWERPOINT_EXTENSIONS,
+    invalidFileMessage: 'Envie um arquivo PPT ou PPTX valido.',
+    failureMessage: 'Falha ao converter o arquivo PowerPoint em PDF.',
+    unavailableMessage: 'A conversao de arquivos PowerPoint exige LibreOffice no servidor. Configure o binario em LIBREOFFICE_PATH ou use a imagem de deploy com LibreOffice.',
+    textFallback: {
+      supportedExtensions: POWERPOINT_TEXT_FALLBACK_EXTENSIONS,
+      emptyContentMessage: 'Nao foi possivel extrair texto dos slides enviados. Quando o LibreOffice nao estiver disponivel, a conversao de PowerPoint para PDF so consegue recriar o PDF a partir do texto do PPTX.',
+      subtitle: 'PDF recriado a partir do conteudo textual dos slides do arquivo PPTX.',
+      pageSize: POWERPOINT_PAGE_SIZE,
+      parseConfig: {
+        ignoreNotes: true,
+        newlineDelimiter: '\n\n'
+      },
+      warningMessage: 'O LibreOffice nao estava disponivel. O PDF final foi recriado a partir do texto extraido do PPTX, por isso imagens, transicoes, animacoes e o layout original dos slides podem variar.'
+    }
+  }
+});
 
 const drawCenteredImage = (page, image, imageWidth, imageHeight, padding) => {
   const { width: pageWidth, height: pageHeight } = page.getSize();
@@ -1190,37 +1224,9 @@ const splitPdfToZip = async (file) => {
   };
 };
 
-const convertWordToPdf = async (file) => convertOfficeDocumentToPdf(file, {
-  supportedExtensions: WORD_EXTENSIONS,
-  textFallbackExtensions: WORD_TEXT_FALLBACK_EXTENSIONS,
-  invalidFileMessage: 'Envie um arquivo DOC ou DOCX valido.',
-  emptyContentMessage: 'Nao foi possivel extrair texto do arquivo enviado. Quando o LibreOffice nao estiver disponivel, a conversao de Word para PDF so consegue recriar o PDF a partir do texto do DOCX.',
-  failureMessage: 'Falha ao converter o arquivo Word em PDF.',
-  unavailableMessage: 'A conversao de arquivos Word exige LibreOffice no servidor. Configure o binario em LIBREOFFICE_PATH ou use a imagem de deploy com LibreOffice.',
-  subtitle: 'PDF recriado a partir do conteudo textual do arquivo DOCX.',
-  pageSize: [DEFAULT_PDF_PAGE_WIDTH, DEFAULT_PDF_PAGE_HEIGHT],
-  parseConfig: {
-    includeBreakNodes: true,
-    newlineDelimiter: '\n\n'
-  },
-  warningMessage: 'O LibreOffice nao estava disponivel. O PDF final foi recriado a partir do texto extraido do DOCX, por isso fontes, tabelas complexas, imagens e a diagramacao original podem variar.'
-});
+const convertWordToPdf = createOfficeConverter(OFFICE_CONVERSION_PROFILES.word);
 
-const convertPowerpointToPdf = async (file) => convertOfficeDocumentToPdf(file, {
-  supportedExtensions: POWERPOINT_EXTENSIONS,
-  textFallbackExtensions: POWERPOINT_TEXT_FALLBACK_EXTENSIONS,
-  invalidFileMessage: 'Envie um arquivo PPT ou PPTX valido.',
-  emptyContentMessage: 'Nao foi possivel extrair texto dos slides enviados. Quando o LibreOffice nao estiver disponivel, a conversao de PowerPoint para PDF so consegue recriar o PDF a partir do texto do PPTX.',
-  failureMessage: 'Falha ao converter o arquivo PowerPoint em PDF.',
-  unavailableMessage: 'A conversao de arquivos PowerPoint exige LibreOffice no servidor. Configure o binario em LIBREOFFICE_PATH ou use a imagem de deploy com LibreOffice.',
-  subtitle: 'PDF recriado a partir do conteudo textual dos slides do arquivo PPTX.',
-  pageSize: POWERPOINT_PAGE_SIZE,
-  parseConfig: {
-    ignoreNotes: true,
-    newlineDelimiter: '\n\n'
-  },
-  warningMessage: 'O LibreOffice nao estava disponivel. O PDF final foi recriado a partir do texto extraido do PPTX, por isso imagens, transicoes, animacoes e o layout original dos slides podem variar.'
-});
+const convertPowerpointToPdf = createOfficeConverter(OFFICE_CONVERSION_PROFILES.powerpoint);
 
 module.exports = {
   convertPdfToZip,
