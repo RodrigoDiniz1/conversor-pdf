@@ -1,7 +1,42 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
+const ort = require('onnxruntime-node');
 const sharp = require('sharp');
+
+const BACKGROUND_REMOVAL_SESSION_OPTIONS = Object.freeze({
+  executionMode: 'sequential',
+  graphOptimizationLevel: 'all',
+  interOpNumThreads: 1,
+  intraOpNumThreads: 1
+});
+
+const ensureBackgroundRemovalRuntimeCompatibility = () => {
+  if (ort.InferenceSession.create.__backgroundRemovalThreadLimitApplied) {
+    return;
+  }
+
+  const originalCreate = ort.InferenceSession.create.bind(ort.InferenceSession);
+
+  ort.InferenceSession.create = (...args) => {
+    const optionsIndex = typeof args.at(-1) === 'object' && !ArrayBuffer.isView(args.at(-1)) ? args.length - 1 : -1;
+
+    if (optionsIndex >= 0) {
+      args[optionsIndex] = {
+        ...args[optionsIndex],
+        ...BACKGROUND_REMOVAL_SESSION_OPTIONS
+      };
+    } else {
+      args.push(BACKGROUND_REMOVAL_SESSION_OPTIONS);
+    }
+
+    return originalCreate(...args);
+  };
+  ort.InferenceSession.create.__backgroundRemovalThreadLimitApplied = true;
+};
+
+ensureBackgroundRemovalRuntimeCompatibility();
+
 const { removeBackground: removeBackgroundImage } = require('@imgly/background-removal-node');
 
 const {
@@ -20,6 +55,11 @@ const DEFAULT_IMAGE_DENSITY = 72;
 const LOSSLESS_PNG_COMPRESSION_LEVEL = 9;
 const LOSSLESS_PNG_EFFORT = 10;
 const INVALID_BACKGROUND_REMOVAL_OUTPUT_MESSAGE = 'A saida gerada nao e um PNG valido.';
+const BACKGROUND_REMOVAL_RESOURCE_LIMIT_TOKENS = [
+  'failed to create session',
+  'pthread_create failed',
+  'resource temporarily unavailable'
+];
 
 ensureDirectory(outputRoot);
 
@@ -55,7 +95,15 @@ const buildBackgroundRemovalError = (error) => {
   }
 
   const detail = String(error?.message || error || '').trim();
+  const normalizedDetail = detail.toLowerCase();
   const failureMessage = 'Falha ao remover o background da imagem.';
+
+  if (BACKGROUND_REMOVAL_RESOURCE_LIMIT_TOKENS.some((token) => normalizedDetail.includes(token))) {
+    return {
+      statusCode: 503,
+      message: 'O servidor atual nao conseguiu iniciar o motor de recorte de imagem. Tente novamente em instantes.'
+    };
+  }
 
   return {
     statusCode: 500,
