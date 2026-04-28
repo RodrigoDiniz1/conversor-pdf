@@ -32,6 +32,7 @@ const createStaticIndexHtml = () => {
   return indexHtml
     .replace(/styles\.css\?v=[^\"]+/g, 'styles.css')
     .replace(/config\.js\?v=[^\"]+/g, 'config.js')
+    .replace(/tool-validation\.js\?v=[^\"]+/g, 'tool-validation.js')
     .replace(/app\.js\?v=[^\"]+/g, 'app.js')
     .replace(/\.\.\/images\//g, './images/');
 };
@@ -49,6 +50,7 @@ mkdirSync(distDir, { recursive: true });
 await build({
   entryPoints: [
     path.join(publicDir, 'app.js'),
+    path.join(publicDir, 'tool-validation.js'),
     path.join(publicDir, 'styles.css')
   ],
   outdir: distDir,

@@ -46,6 +46,10 @@ const cleanupPdfOutputArtifacts = async ({ uploadPaths = [], pdfPath }) => {
   await removeFiles(uploadPaths.concat(pdfPath));
 };
 
+const cleanupSingleUploadOutputArtifacts = async ({ uploadPath, outputPath }) => {
+  await removeFiles([uploadPath, outputPath]);
+};
+
 const buildSingleUploadPdfOutput = (req, conversion) => ({
   filePath: conversion.pdfPath,
   downloadName: conversion.downloadName,
@@ -152,6 +156,24 @@ const jpgToPdf = createConversionHandler({
   })
 });
 
+const removeBackground = createConversionHandler({
+  isRequestValid: hasSingleFile,
+  badRequestMessage: 'Nenhuma imagem foi enviada.',
+  convert: (req) => conversionService.removeImageBackground(req.file),
+  buildDownload: (req, conversion) => ({
+    filePath: conversion.imagePath,
+    downloadName: conversion.downloadName,
+    cleanup: () => cleanupSingleUploadOutputArtifacts({
+      uploadPath: req.file.path,
+      outputPath: conversion.imagePath
+    })
+  }),
+  buildErrorCleanup: (req, conversion) => cleanupSingleUploadOutputArtifacts({
+    uploadPath: req.file.path,
+    outputPath: conversion?.imagePath
+  })
+});
+
 const mergePdf = createConversionHandler({
   isRequestValid: (req) => hasMinimumFiles(req, 2),
   badRequestMessage: 'Envie ao menos dois arquivos PDF para juntar.',
@@ -203,6 +225,7 @@ const powerpointToPdf = createSingleOfficePdfHandler({
 module.exports = {
   pdfToJpg,
   jpgToPdf,
+  removeBackground,
   mergePdf,
   splitPdf,
   wordToPdf,

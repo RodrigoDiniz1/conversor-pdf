@@ -3,6 +3,7 @@ const express = require('express');
 const uploadController = require('../controllers/uploadController');
 const {
   handlePdfUpload,
+  handleImageUpload,
   handleMergePdfUpload,
   handleJpgUpload,
   handleWordUpload,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post('/pdf-to-jpg', handlePdfUpload, uploadController.pdfToJpg);
 router.post('/jpg-to-pdf', handleJpgUpload, uploadController.jpgToPdf);
+router.post('/remove-background', handleImageUpload, uploadController.removeBackground);
 router.post('/merge-pdf', handleMergePdfUpload, uploadController.mergePdf);
 router.post('/split-pdf', handlePdfUpload, uploadController.splitPdf);
 router.post('/word-to-pdf', handleWordUpload, uploadController.wordToPdf);

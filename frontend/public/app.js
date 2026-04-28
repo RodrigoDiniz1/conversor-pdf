@@ -57,6 +57,35 @@ const toolCatalog = {
       { type: 'jpg', label: 'JPG' }
     ]
   },
+  'remove-background': {
+    id: 'remove-background',
+    title: 'Remover Background',
+    cardDescription: 'Recorte o fundo da imagem com alta qualidade e baixe o resultado em PNG transparente.',
+    cardHighlights: ['Aceita JPG, PNG e WebP', 'Entrega PNG transparente'],
+    detailDescription: 'Envie uma imagem JPG, PNG ou WebP por vez para remover o fundo e baixar um PNG transparente pronto para catalogos, thumbnails e design.',
+    note: 'A saida final e gerada em PNG com transparencia para preservar melhor o recorte.',
+    section: 'active',
+    kicker: 'Edicao de imagem',
+    helper: 'Envie 1 imagem por vez e receba um PNG transparente sem o background.',
+    available: true,
+    status: 'Disponivel agora',
+    endpoint: '/upload/remove-background',
+    fieldName: 'file',
+    accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/jpg,image/png,image/webp',
+    allowMultiple: false,
+    chooseLabel: 'Selecionar imagem',
+    idleSubtitle: 'Ou solte uma imagem JPG, PNG ou WebP aqui',
+    lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
+    processingMessage: 'Enviando a imagem e removendo o background com alta qualidade...',
+    successMessage: 'Recorte concluido. O PNG transparente foi baixado automaticamente.',
+    readyMessage: () => 'Imagem pronta para recorte.',
+    receivedMessage: () => 'Imagem recebida. O recorte comeca agora.',
+    defaultDownloadName: 'imagem-sem-fundo-convertida.png',
+    badges: [
+      { type: 'image', label: 'IMG' },
+      { type: 'png', label: 'PNG' }
+    ]
+  },
   'merge-pdf': {
     id: 'merge-pdf',
     title: 'Juntar PDF',
@@ -176,7 +205,7 @@ const toolCatalog = {
 };
 
 const toolSections = {
-  active: ['jpg-to-pdf', 'pdf-to-jpg'],
+  active: ['jpg-to-pdf', 'pdf-to-jpg', 'remove-background'],
   organize: ['merge-pdf', 'split-pdf'],
   future: ['word-to-pdf', 'powerpoint-to-pdf']
 };
@@ -191,6 +220,11 @@ const toolExperienceCatalog = {
     accent: '#df572c',
     soft: 'rgba(255, 109, 61, 0.12)',
     border: 'rgba(255, 109, 61, 0.24)'
+  },
+  'remove-background': {
+    accent: '#0d9488',
+    soft: 'rgba(13, 148, 136, 0.12)',
+    border: 'rgba(13, 148, 136, 0.24)'
   },
   'merge-pdf': {
     accent: '#4067bf',
@@ -215,6 +249,8 @@ const toolExperienceCatalog = {
 };
 
 const SERVER_UNAVAILABLE_MESSAGE = 'Nao foi possivel encontrar o servidor da conversao.';
+const REQUEST_TIMEOUT_MESSAGE = 'O backend nao respondeu a tempo para concluir o envio.';
+const NETWORK_CONNECTION_MESSAGE = 'Nao foi possivel conectar ao servidor.';
 const SERVER_UNAVAILABLE_HINTS = [
   'Confirme se o backend foi publicado ou se o servidor local esta no ar.',
   'Verifique a URL da API e as configuracoes do ambiente antes do deploy.',
@@ -235,6 +271,14 @@ const LOCAL_API_PORT = '3000';
 let preferredApiBaseUrl = null;
 
 const buildUniqueOrigins = (origins) => Array.from(new Set(origins.filter(Boolean)));
+
+const eventHasFiles = (event) => Array.from(event.dataTransfer?.types || []).includes('Files');
+
+const includesAnyMessage = (message = '', expectedMessages = []) => (
+  expectedMessages.some((expectedMessage) => message.includes(expectedMessage))
+);
+
+const createUploadFailure = (kind, message, extra = {}) => ({ kind, message, ...extra });
 
 const normalizeApiBaseUrl = (value = '') => value.trim().replace(/\/+$/, '');
 
@@ -316,25 +360,31 @@ const viewRegistry = {
 
 const getCurrentTool = () => toolCatalog[state.activeToolId] || null;
 const getCurrentToolExperience = () => toolExperienceCatalog[state.activeToolId] || {};
+const toolValidation = window.ToolValidation;
 
-const isPdfFile = (file) => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-
-const isJpgFile = (file) => ['image/jpeg', 'image/jpg'].includes(file.type) || /\.jpe?g$/i.test(file.name);
-
-const isWordFile = (file) => (
-  ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)
-  || /\.docx?$/i.test(file.name)
-);
-
-const isPowerpointFile = (file) => (
-  ['application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'].includes(file.type)
-  || /\.pptx?$/i.test(file.name)
-);
+if (!toolValidation?.getValidatedFilesForTool) {
+  throw new Error('Tool validation runtime is not available.');
+}
 
 const isServerUnavailableError = (message = '') => (
-  message.includes(SERVER_UNAVAILABLE_MESSAGE)
-  || message.includes('Nao foi possivel conectar ao servidor.')
+  includesAnyMessage(message, [
+    SERVER_UNAVAILABLE_MESSAGE,
+    REQUEST_TIMEOUT_MESSAGE,
+    NETWORK_CONNECTION_MESSAGE
+  ])
 );
+
+const getErrorDescriptionForMessage = (message = '') => {
+  if (message.includes(REQUEST_TIMEOUT_MESSAGE)) {
+    return REQUEST_TIMEOUT_MESSAGE;
+  }
+
+  if (includesAnyMessage(message, [SERVER_UNAVAILABLE_MESSAGE, NETWORK_CONNECTION_MESSAGE])) {
+    return 'Nao foi possivel se conectar ao backend para iniciar a conversao.';
+  }
+
+  return 'Nao foi possivel concluir a comunicacao com o backend.';
+};
 
 const formatSize = (bytes) => {
   if (bytes < 1024) {
@@ -392,6 +442,22 @@ const fileIconThemeByType = {
     border: '#ecd687',
     fold: '#fff0bf',
     text: '#5d4600'
+  },
+  image: {
+    label: 'IMG',
+    accent: '#14b8a6',
+    accentDark: '#0d9488',
+    border: '#8fe0d6',
+    fold: '#d7fbf6',
+    text: '#053d38'
+  },
+  png: {
+    label: 'PNG',
+    accent: '#0f766e',
+    accentDark: '#115e59',
+    border: '#86d7cf',
+    fold: '#d4f7f3',
+    text: '#ffffff'
   },
   word: {
     label: 'DOC',
@@ -592,7 +658,7 @@ const syncErrorView = () => {
   const tool = getCurrentTool();
 
   errorTitle.textContent = `Nao foi possivel concluir ${tool?.title || 'essa conversao'}`;
-  errorDescription.textContent = 'O backend nao respondeu a tempo para concluir o envio.';
+  errorDescription.textContent = state.lastError?.description || getErrorDescriptionForMessage(state.lastError?.message || '');
   errorDetail.textContent = state.lastError?.message || SERVER_UNAVAILABLE_MESSAGE;
 };
 
@@ -631,6 +697,7 @@ const showErrorView = (message) => {
 
   state.lastError = {
     message,
+    description: getErrorDescriptionForMessage(message),
     toolId: tool?.id || null
   };
 
@@ -701,7 +768,7 @@ const renderPreview = (file) => {
   const visual = document.createElement('img');
   visual.alt = '';
 
-  if (tool?.id === 'jpg-to-pdf') {
+  if (tool?.id === 'jpg-to-pdf' || tool?.id === 'remove-background') {
     visual.className = 'preview-thumb';
     visual.src = URL.createObjectURL(file);
     visual.addEventListener('load', () => URL.revokeObjectURL(visual.src), { once: true });
@@ -833,6 +900,7 @@ const sendUploadRequest = ({ apiBaseUrl, tool }) => new Promise((resolve, reject
 
   xhr.open('POST', `${apiBaseUrl}${tool.endpoint}`, true);
   xhr.responseType = 'blob';
+  xhr.timeout = 240000;
 
   xhr.upload.addEventListener('progress', (event) => {
     if (event.lengthComputable) {
@@ -851,18 +919,17 @@ const sendUploadRequest = ({ apiBaseUrl, tool }) => new Promise((resolve, reject
       return;
     }
 
-    reject({
-      kind: 'http',
-      statusCode: xhr.status,
-      message: await parseUploadErrorMessage(xhr)
-    });
+    reject(createUploadFailure('http', await parseUploadErrorMessage(xhr), {
+      statusCode: xhr.status
+    }));
   });
 
   xhr.addEventListener('error', () => {
-    reject({
-      kind: 'network',
-      message: 'Nao foi possivel conectar ao servidor.'
-    });
+    reject(createUploadFailure('network', NETWORK_CONNECTION_MESSAGE));
+  });
+
+  xhr.addEventListener('timeout', () => {
+    reject(createUploadFailure('timeout', REQUEST_TIMEOUT_MESSAGE));
   });
 
   xhr.send(formData);
@@ -871,6 +938,7 @@ const sendUploadRequest = ({ apiBaseUrl, tool }) => new Promise((resolve, reject
 const uploadWithProgress = async () => {
   const tool = getCurrentTool();
   let lastFailure = null;
+  let timeoutFailure = null;
 
   for (const apiBaseUrl of getOrderedApiOriginCandidates()) {
     try {
@@ -880,10 +948,19 @@ const uploadWithProgress = async () => {
     } catch (error) {
       lastFailure = error;
 
+      if (error.kind === 'timeout') {
+        timeoutFailure = error;
+        continue;
+      }
+
       if (error.kind === 'http' && !shouldRetryWithNextOrigin(error.statusCode)) {
         throw new Error(error.message);
       }
     }
+  }
+
+  if (timeoutFailure) {
+    throw new Error(timeoutFailure.message);
   }
 
   if (lastFailure?.kind === 'http' && !shouldRetryWithNextOrigin(lastFailure.statusCode)) {
@@ -893,111 +970,7 @@ const uploadWithProgress = async () => {
   throw new Error(getServerUnavailableMessage());
 };
 
-const toolFileValidators = {
-  'pdf-to-jpg': (files, { pdfFiles, jpgFiles }) => {
-    if (pdfFiles.length === 1 && pdfFiles.length === files.length) {
-      return [pdfFiles[0]];
-    }
-
-    if (pdfFiles.length > 1) {
-      throw new Error('Para converter PDF em JPG, envie apenas um PDF por vez.');
-    }
-
-    if (jpgFiles.length > 0) {
-      throw new Error('Esta tela esta em PDF para JPG. Escolha o card JPG para PDF se quiser enviar imagens.');
-    }
-
-    throw new Error('Selecione um arquivo PDF valido.');
-  },
-  'jpg-to-pdf': (files, { pdfFiles, jpgFiles }) => {
-    if (jpgFiles.length === files.length && jpgFiles.length > 0) {
-      return files;
-    }
-
-    if (pdfFiles.length > 0) {
-      throw new Error('Esta tela esta em JPG para PDF. Escolha o card PDF para JPG se quiser enviar um PDF.');
-    }
-
-    throw new Error('Selecione apenas imagens JPG/JPEG validas.');
-  },
-  'merge-pdf': (files, { pdfFiles, jpgFiles }) => {
-    if (pdfFiles.length === files.length && pdfFiles.length >= 2) {
-      return files;
-    }
-
-    if (jpgFiles.length > 0) {
-      throw new Error('Esta tela esta em Juntar PDF. Envie apenas arquivos PDF para montar o documento final.');
-    }
-
-    if (pdfFiles.length === 1) {
-      throw new Error('Envie ao menos dois arquivos PDF para juntar.');
-    }
-
-    throw new Error('Selecione apenas arquivos PDF validos.');
-  },
-  'split-pdf': (files, { pdfFiles, jpgFiles }) => {
-    if (pdfFiles.length === 1 && pdfFiles.length === files.length) {
-      return [pdfFiles[0]];
-    }
-
-    if (pdfFiles.length > 1) {
-      throw new Error('Para dividir PDF, envie apenas um PDF por vez.');
-    }
-
-    if (jpgFiles.length > 0) {
-      throw new Error('Esta tela esta em Dividir PDF. Envie apenas um arquivo PDF valido.');
-    }
-
-    throw new Error('Selecione um arquivo PDF valido.');
-  },
-  'word-to-pdf': (files, { wordFiles }) => {
-    if (wordFiles.length === 1 && wordFiles.length === files.length) {
-      return [wordFiles[0]];
-    }
-
-    if (files.length > 1) {
-      throw new Error('Para converter Word em PDF, envie apenas um arquivo DOC ou DOCX por vez.');
-    }
-
-    throw new Error('Selecione um arquivo DOC ou DOCX valido.');
-  },
-  'powerpoint-to-pdf': (files, { powerpointFiles }) => {
-    if (powerpointFiles.length === 1 && powerpointFiles.length === files.length) {
-      return [powerpointFiles[0]];
-    }
-
-    if (files.length > 1) {
-      throw new Error('Para converter PowerPoint em PDF, envie apenas um arquivo PPT ou PPTX por vez.');
-    }
-
-    throw new Error('Selecione um arquivo PPT ou PPTX valido.');
-  }
-};
-
-const getValidatedFilesForCurrentTool = (files) => {
-  const tool = getCurrentTool();
-  const pdfFiles = files.filter(isPdfFile);
-  const jpgFiles = files.filter(isJpgFile);
-  const wordFiles = files.filter(isWordFile);
-  const powerpointFiles = files.filter(isPowerpointFile);
-
-  if (!tool?.available) {
-    throw new Error(tool?.lockedMessage || 'Esta ferramenta ainda nao esta disponivel.');
-  }
-
-  const validateFiles = toolFileValidators[tool.id];
-
-  if (validateFiles) {
-    return validateFiles(files, {
-      pdfFiles,
-      jpgFiles,
-      wordFiles,
-      powerpointFiles
-    });
-  }
-
-  throw new Error(tool.lockedMessage || 'Esta ferramenta ainda nao esta disponivel.');
-};
+const getValidatedFilesForCurrentTool = (files) => toolValidation.getValidatedFilesForTool(getCurrentTool(), files);
 
 const startConversion = async () => {
   const tool = getCurrentTool();
@@ -1092,6 +1065,20 @@ comingSoonBackButton.addEventListener('click', goHome);
 comingSoonHomeButton.addEventListener('click', goHome);
 comingSoonActiveButton.addEventListener('click', () => {
   openTool(DEFAULT_ACTIVE_TOOL_ID);
+});
+
+['dragenter', 'dragover', 'drop'].forEach((eventName) => {
+  window.addEventListener(eventName, (event) => {
+    if (!eventHasFiles(event)) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (eventName === 'drop' && !dropzone.contains(event.target)) {
+      dropzone.classList.remove('is-dragging');
+    }
+  });
 });
 
 dropzone.addEventListener('click', (event) => {

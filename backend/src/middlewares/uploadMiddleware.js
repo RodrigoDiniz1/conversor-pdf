@@ -6,6 +6,8 @@ const { ensureDirectory, createJobId } = require('../utils/fileUtils');
 const uploadDir = path.join(__dirname, '..', '..', 'tmp', 'uploads');
 const maxFileSizeMb = 100;
 const maxFileSize = maxFileSizeMb * 1024 * 1024;
+const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const imageMimeTypes = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
 const jpgExtensions = new Set(['.jpg', '.jpeg']);
 const jpgMimeTypes = new Set(['image/jpeg', 'image/jpg']);
 const wordExtensions = new Set(['.doc', '.docx']);
@@ -43,6 +45,10 @@ const fileRules = {
   pdf: {
     errorMessage: 'Envie um arquivo PDF valido.',
     isValid: (file) => file.mimetype === 'application/pdf' || getFileExtension(file) === '.pdf'
+  },
+  image: {
+    errorMessage: 'Envie uma imagem JPG, PNG ou WebP valida.',
+    isValid: (file) => imageExtensions.has(getFileExtension(file)) || imageMimeTypes.has(file.mimetype)
   },
   jpg: {
     errorMessage: 'Envie apenas imagens JPG ou JPEG validas.',
@@ -107,6 +113,10 @@ module.exports = {
   handlePdfUpload: createUploadHandler({
     fieldName: 'file',
     rule: fileRules.pdf
+  }),
+  handleImageUpload: createUploadHandler({
+    fieldName: 'file',
+    rule: fileRules.image
   }),
   handleMergePdfUpload: createUploadHandler({
     fieldName: 'files',
