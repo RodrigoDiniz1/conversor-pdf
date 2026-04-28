@@ -55,7 +55,7 @@ const BACKGROUND_REMOVAL_FALLBACK_MODEL = 'small';
 const DEFAULT_IMAGE_DENSITY = 72;
 const LOSSLESS_PNG_COMPRESSION_LEVEL = 9;
 const LOSSLESS_PNG_EFFORT = 10;
-const INVALID_BACKGROUND_REMOVAL_OUTPUT_MESSAGE = 'A saida gerada nao e um PNG valido.';
+const INVALID_BACKGROUND_REMOVAL_OUTPUT_MESSAGE = 'A saída gerada não é um PNG válido.';
 const BACKGROUND_REMOVAL_RESOURCE_LIMIT_TOKENS = [
   'failed to create session',
   'pthread_create failed',
@@ -104,12 +104,12 @@ const buildBackgroundRemovalError = (error) => {
   }
 
   const detail = getBackgroundRemovalErrorDetail(error);
-  const failureMessage = 'Falha ao remover o background da imagem.';
+  const failureMessage = 'Falha ao remover o fundo da imagem.';
 
   if (isBackgroundRemovalResourceLimitError(error)) {
     return {
       statusCode: 503,
-      message: 'O servidor atual nao conseguiu iniciar o motor de recorte de imagem. Tente novamente em instantes.'
+      message: 'O servidor atual não conseguiu iniciar o motor de recorte da imagem. Tente novamente em instantes.'
     };
   }
 

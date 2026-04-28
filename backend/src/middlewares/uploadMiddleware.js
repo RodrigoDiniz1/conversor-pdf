@@ -43,23 +43,23 @@ const getFileExtension = (file) => path.extname(file.originalname).toLowerCase()
 
 const fileRules = {
   pdf: {
-    errorMessage: 'Envie um arquivo PDF valido.',
+    errorMessage: 'Envie um arquivo PDF válido.',
     isValid: (file) => file.mimetype === 'application/pdf' || getFileExtension(file) === '.pdf'
   },
   image: {
-    errorMessage: 'Envie uma imagem JPG, PNG ou WebP valida.',
+    errorMessage: 'Envie uma imagem JPG, PNG ou WebP válida.',
     isValid: (file) => imageExtensions.has(getFileExtension(file)) || imageMimeTypes.has(file.mimetype)
   },
   jpg: {
-    errorMessage: 'Envie apenas imagens JPG ou JPEG validas.',
+    errorMessage: 'Envie apenas imagens JPG ou JPEG válidas.',
     isValid: (file) => jpgExtensions.has(getFileExtension(file)) || jpgMimeTypes.has(file.mimetype)
   },
   word: {
-    errorMessage: 'Envie um arquivo DOC ou DOCX valido.',
+    errorMessage: 'Envie um arquivo DOC ou DOCX válido.',
     isValid: (file) => wordExtensions.has(getFileExtension(file)) || wordMimeTypes.has(file.mimetype)
   },
   powerpoint: {
-    errorMessage: 'Envie um arquivo PPT ou PPTX valido.',
+    errorMessage: 'Envie um arquivo PPT ou PPTX válido.',
     isValid: (file) => (
       powerpointExtensions.has(getFileExtension(file)) || powerpointMimeTypes.has(file.mimetype)
     )
@@ -82,7 +82,7 @@ const toUploadError = (error) => {
 
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
-      return { statusCode: 400, message: `O limite maximo por arquivo e de ${maxFileSizeMb}MB.` };
+      return { statusCode: 400, message: `O limite máximo por arquivo é de ${maxFileSizeMb}MB.` };
     }
 
     return { statusCode: 400, message: error.message };

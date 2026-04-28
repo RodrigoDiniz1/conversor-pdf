@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Converter PDF e JPG | Juntar, dividir e organizar arquivos</title>
-    <meta name="description" content="Converta PDF para JPG, JPG para PDF, junte arquivos PDF e divida paginas em uma interface direta, com upload imediato e download automatico." />
+    <meta name="description" content="Converta PDF para JPG, JPG para PDF, junte arquivos PDF e divida páginas em uma interface direta, com upload imediato e download automático." />
     <meta name="robots" content="index,follow" />
     <meta name="theme-color" content="#142434" />
     <meta name="application-name" content="RD file studio" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Converter PDF e JPG | RD file studio" />
-    <meta property="og:description" content="Ferramentas para converter PDF em JPG, JPG em PDF, juntar PDF e dividir paginas em uma interface clara e pronta para deploy." />
+    <meta property="og:description" content="Ferramentas para converter PDF em JPG, JPG em PDF, juntar PDF e dividir páginas em uma interface clara e pronta para deploy." />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preload" as="image" href="../images/untitled_design_1.webp" fetchpriority="high" />
     <link rel="stylesheet" href="styles.css?v=20260422-06" />
@@ -21,7 +21,7 @@
         "name": "RD file studio",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
-        "description": "Aplicacao web para converter PDF para JPG, JPG para PDF, juntar PDFs e dividir paginas em arquivos separados.",
+        "description": "Aplicação web para converter PDF para JPG, JPG para PDF, juntar PDFs e dividir páginas em arquivos separados.",
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -33,7 +33,7 @@
   <body>
     <div class="page-shell">
       <header class="site-header">
-        <button id="brand-home-button" class="brand-mark" type="button" aria-label="Ir para a home">
+        <button id="brand-home-button" class="brand-mark" type="button" aria-label="Ir para a página inicial">
           <img src="../images/untitled_design_1.webp" alt="RD file studio" width="116" height="116" fetchpriority="high" decoding="async" />
         </button>
       </header>
@@ -41,7 +41,7 @@
       <main class="app-main">
         <section id="home-view" class="view home-view" aria-labelledby="home-title">
           <div class="home-hero">
-            <h1 id="home-title" class="home-title">Abra o fluxo certo e <span class="title-accent">converta ou organize</span> seus arquivos em uma tela dedicada.</h1>
+            <h1 id="home-title" class="home-title">Escolha o fluxo certo e <span class="title-accent">converta ou organize</span> seus arquivos em uma tela dedicada.</h1>
           </div>
 
           <div class="home-columns">
@@ -55,7 +55,7 @@
           <div id="tool-stage" class="tool-stage">
             <div class="tool-layout">
               <div class="tool-copy-panel">
-                <button id="back-home-button" class="back-button" type="button">Voltar para a home</button>
+                <button id="back-home-button" class="back-button" type="button">Voltar para a página inicial</button>
 
                 <p id="tool-kicker" class="tool-kicker"></p>
                 <h1 id="tool-title" class="tool-title"></h1>
@@ -88,7 +88,7 @@
 
                 <div id="selection-meta" class="selection-meta is-hidden">
                   <div id="preview-list" class="preview-list"></div>
-                  <button id="clear-button" class="reset-button" type="button">Limpar selecao</button>
+                  <button id="clear-button" class="reset-button" type="button">Limpar seleção</button>
                 </div>
 
                 <div id="progress-wrapper" class="progress-wrapper is-hidden" aria-hidden="true">
@@ -107,10 +107,10 @@
 
         <section id="success-view" class="view state-view is-hidden" aria-labelledby="success-title">
           <div class="state-shell is-success-shell">
-            <button id="success-back-button" class="back-button" type="button">Voltar para a home</button>
+            <button id="success-back-button" class="back-button" type="button">Voltar para a página inicial</button>
 
             <div class="state-hero">
-              <p class="tool-kicker">Conversao concluida</p>
+              <p class="tool-kicker">Conversão concluída</p>
               <h1 id="success-title" class="state-title"></h1>
               <p id="success-description" class="state-description"></p>
 
@@ -122,8 +122,8 @@
               <p id="success-note" class="state-note"></p>
 
               <div class="state-actions">
-                <button id="success-again-button" class="primary-action" type="button">Nova conversao</button>
-                <button id="success-home-button" class="secondary-action" type="button">Ir para a home</button>
+                <button id="success-again-button" class="primary-action" type="button">Nova conversão</button>
+                <button id="success-home-button" class="secondary-action" type="button">Ir para a página inicial</button>
               </div>
             </div>
           </div>
@@ -131,17 +131,17 @@
 
         <section id="error-view" class="view state-view is-hidden" aria-labelledby="error-title">
           <div class="state-shell is-error-shell">
-            <button id="error-back-button" class="back-button" type="button">Voltar para a home</button>
+            <button id="error-back-button" class="back-button" type="button">Voltar para a página inicial</button>
 
             <div class="state-hero">
-              <p class="tool-kicker">Servidor indisponivel</p>
+              <p class="tool-kicker">Servidor indisponível</p>
               <h1 id="error-title" class="state-title"></h1>
               <p id="error-description" class="state-description"></p>
               <p id="error-detail" class="state-note"></p>
 
               <div class="state-actions">
                 <button id="error-retry-button" class="primary-action" type="button">Tentar novamente</button>
-                <button id="error-home-button" class="secondary-action" type="button">Ir para a home</button>
+                <button id="error-home-button" class="secondary-action" type="button">Ir para a página inicial</button>
               </div>
             </div>
           </div>
@@ -149,7 +149,7 @@
 
         <section id="coming-soon-view" class="view state-view is-hidden" aria-labelledby="coming-soon-title">
           <div class="state-shell is-coming-soon-shell">
-            <button id="coming-soon-back-button" class="back-button" type="button">Voltar para a home</button>
+            <button id="coming-soon-back-button" class="back-button" type="button">Voltar para a página inicial</button>
 
             <div class="state-hero">
               <div id="coming-soon-badge-stack" class="state-badge-stack" aria-hidden="true"></div>
@@ -158,8 +158,8 @@
               <p id="coming-soon-description" class="state-description"></p>
 
               <div class="state-actions">
-                <button id="coming-soon-home-button" class="primary-action" type="button">Voltar para a home</button>
-                <button id="coming-soon-active-button" class="secondary-action" type="button">Ver ferramenta ativa</button>
+                <button id="coming-soon-home-button" class="primary-action" type="button">Voltar para a página inicial</button>
+                <button id="coming-soon-active-button" class="secondary-action" type="button">Ver ferramenta disponível</button>
               </div>
             </div>
           </div>

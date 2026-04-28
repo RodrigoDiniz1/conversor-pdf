@@ -234,13 +234,13 @@ const buildFontWarningMessage = (diagnostics) => {
   const sourceFamilies = Array.from(diagnostics.substitutionSources).filter(Boolean);
 
   if (sourceFamilies.length === 0) {
-    return 'Aviso: este PDF usou substituicao de fontes do sistema. O resultado pode nao ficar 100% fiel ao original.';
+    return 'Aviso: este PDF usou substituição de fontes do sistema. O resultado pode não ficar 100% fiel ao original.';
   }
 
   const visibleFamilies = sourceFamilies.slice(0, 3);
   const suffix = sourceFamilies.length > visibleFamilies.length ? ' e outras' : '';
 
-  return `Aviso: este PDF usou substituicao de fontes do sistema (${visibleFamilies.join(', ')}${suffix}). O resultado pode nao ficar 100% fiel ao original.`;
+  return `Aviso: este PDF usou substituição de fontes do sistema (${visibleFamilies.join(', ')}${suffix}). O resultado pode não ficar 100% fiel ao original.`;
 };
 
 class CanvasFontFace {

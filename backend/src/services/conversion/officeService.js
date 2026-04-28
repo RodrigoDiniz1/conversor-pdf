@@ -330,7 +330,7 @@ const createOfficePageState = ({
     cursorY -= 6;
   }
 
-  const footerLabel = `Pagina ${nextPageNumber}`;
+  const footerLabel = `Página ${nextPageNumber}`;
   page.drawText(footerLabel, {
     x: width - OFFICE_PAGE_MARGIN - regularFont.widthOfTextAtSize(footerLabel, 8),
     y: OFFICE_PAGE_FOOTER_Y,
@@ -489,36 +489,36 @@ const createOfficeConverter = (profile) => async (file) => convertOfficeDocument
 const OFFICE_CONVERSION_PROFILES = Object.freeze({
   word: {
     supportedExtensions: WORD_EXTENSIONS,
-    invalidFileMessage: 'Envie um arquivo DOC ou DOCX valido.',
+    invalidFileMessage: 'Envie um arquivo DOC ou DOCX válido.',
     failureMessage: 'Falha ao converter o arquivo Word em PDF.',
-    unavailableMessage: 'A conversao de arquivos Word exige LibreOffice no servidor. Configure o binario em LIBREOFFICE_PATH ou use a imagem de deploy com LibreOffice.',
+    unavailableMessage: 'A conversão de arquivos Word exige LibreOffice no servidor. Configure o binário em LIBREOFFICE_PATH ou use a imagem de deploy com LibreOffice.',
     textFallback: {
       supportedExtensions: WORD_TEXT_FALLBACK_EXTENSIONS,
-      emptyContentMessage: 'Nao foi possivel extrair texto do arquivo enviado. Quando o LibreOffice nao estiver disponivel, a conversao de Word para PDF so consegue recriar o PDF a partir do texto do DOCX.',
-      subtitle: 'PDF recriado a partir do conteudo textual do arquivo DOCX.',
+      emptyContentMessage: 'Não foi possível extrair texto do arquivo enviado. Quando o LibreOffice não estiver disponível, a conversão de Word para PDF só consegue recriar o PDF a partir do texto do DOCX.',
+      subtitle: 'PDF recriado a partir do conteúdo textual do arquivo DOCX.',
       pageSize: [DEFAULT_PDF_PAGE_WIDTH, DEFAULT_PDF_PAGE_HEIGHT],
       parseConfig: {
         includeBreakNodes: true,
         newlineDelimiter: '\n\n'
       },
-      warningMessage: 'O LibreOffice nao estava disponivel. O PDF final foi recriado a partir do texto extraido do DOCX, por isso fontes, tabelas complexas, imagens e a diagramacao original podem variar.'
+      warningMessage: 'O LibreOffice não estava disponível. O PDF final foi recriado a partir do texto extraído do DOCX, por isso fontes, tabelas complexas, imagens e a diagramação original podem variar.'
     }
   },
   powerpoint: {
     supportedExtensions: POWERPOINT_EXTENSIONS,
-    invalidFileMessage: 'Envie um arquivo PPT ou PPTX valido.',
+    invalidFileMessage: 'Envie um arquivo PPT ou PPTX válido.',
     failureMessage: 'Falha ao converter o arquivo PowerPoint em PDF.',
-    unavailableMessage: 'A conversao de arquivos PowerPoint exige LibreOffice no servidor. Configure o binario em LIBREOFFICE_PATH ou use a imagem de deploy com LibreOffice.',
+    unavailableMessage: 'A conversão de arquivos PowerPoint exige LibreOffice no servidor. Configure o binário em LIBREOFFICE_PATH ou use a imagem de deploy com LibreOffice.',
     textFallback: {
       supportedExtensions: POWERPOINT_TEXT_FALLBACK_EXTENSIONS,
-      emptyContentMessage: 'Nao foi possivel extrair texto dos slides enviados. Quando o LibreOffice nao estiver disponivel, a conversao de PowerPoint para PDF so consegue recriar o PDF a partir do texto do PPTX.',
-      subtitle: 'PDF recriado a partir do conteudo textual dos slides do arquivo PPTX.',
+      emptyContentMessage: 'Não foi possível extrair texto dos slides enviados. Quando o LibreOffice não estiver disponível, a conversão de PowerPoint para PDF só consegue recriar o PDF a partir do texto do PPTX.',
+      subtitle: 'PDF recriado a partir do conteúdo textual dos slides do arquivo PPTX.',
       pageSize: POWERPOINT_PAGE_SIZE,
       parseConfig: {
         ignoreNotes: true,
         newlineDelimiter: '\n\n'
       },
-      warningMessage: 'O LibreOffice nao estava disponivel. O PDF final foi recriado a partir do texto extraido do PPTX, por isso imagens, transicoes, animacoes e o layout original dos slides podem variar.'
+      warningMessage: 'O LibreOffice não estava disponível. O PDF final foi recriado a partir do texto extraído do PPTX, por isso imagens, transições, animações e o layout original dos slides podem variar.'
     }
   }
 });

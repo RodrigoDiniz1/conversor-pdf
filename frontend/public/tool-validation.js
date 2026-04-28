@@ -31,10 +31,10 @@
       }
 
       if (jpgFiles.length > 0) {
-        throw new Error('Esta tela esta em PDF para JPG. Escolha o card JPG para PDF se quiser enviar imagens.');
+        throw new Error('Esta tela é de PDF para JPG. Escolha JPG para PDF se quiser enviar imagens.');
       }
 
-      throw new Error('Selecione um arquivo PDF valido.');
+      throw new Error('Selecione um arquivo PDF válido.');
     },
     'jpg-to-pdf': (files, { pdfFiles, jpgFiles }) => {
       if (jpgFiles.length === files.length && jpgFiles.length > 0) {
@@ -42,10 +42,10 @@
       }
 
       if (pdfFiles.length > 0) {
-        throw new Error('Esta tela esta em JPG para PDF. Escolha o card PDF para JPG se quiser enviar um PDF.');
+        throw new Error('Esta tela é de JPG para PDF. Escolha PDF para JPG se quiser enviar um PDF.');
       }
 
-      throw new Error('Selecione apenas imagens JPG/JPEG validas.');
+      throw new Error('Selecione apenas imagens JPG/JPEG válidas.');
     },
     'remove-background': (files, { pdfFiles, imageFiles }) => {
       if (imageFiles.length === 1 && imageFiles.length === files.length) {
@@ -53,14 +53,14 @@
       }
 
       if (pdfFiles.length > 0) {
-        throw new Error('Esta tela esta em Remover Background. Envie uma imagem JPG, PNG ou WebP, nao um PDF.');
+        throw new Error('Esta tela é de Remover Background. Envie uma imagem JPG, PNG ou WebP, não um PDF.');
       }
 
       if (files.length > 1) {
         throw new Error('Para remover o background, envie apenas uma imagem por vez.');
       }
 
-      throw new Error('Selecione uma imagem JPG, PNG ou WebP valida.');
+      throw new Error('Selecione uma imagem JPG, PNG ou WebP válida.');
     },
     'merge-pdf': (files, { pdfFiles, jpgFiles }) => {
       if (pdfFiles.length === files.length && pdfFiles.length >= 2) {
@@ -68,14 +68,14 @@
       }
 
       if (jpgFiles.length > 0) {
-        throw new Error('Esta tela esta em Juntar PDF. Envie apenas arquivos PDF para montar o documento final.');
+        throw new Error('Esta tela é de Juntar PDF. Envie apenas arquivos PDF para montar o documento final.');
       }
 
       if (pdfFiles.length === 1) {
         throw new Error('Envie ao menos dois arquivos PDF para juntar.');
       }
 
-      throw new Error('Selecione apenas arquivos PDF validos.');
+      throw new Error('Selecione apenas arquivos PDF válidos.');
     },
     'split-pdf': (files, { pdfFiles, jpgFiles }) => {
       if (pdfFiles.length === 1 && pdfFiles.length === files.length) {
@@ -87,10 +87,10 @@
       }
 
       if (jpgFiles.length > 0) {
-        throw new Error('Esta tela esta em Dividir PDF. Envie apenas um arquivo PDF valido.');
+        throw new Error('Esta tela é de Dividir PDF. Envie apenas um arquivo PDF válido.');
       }
 
-      throw new Error('Selecione um arquivo PDF valido.');
+      throw new Error('Selecione um arquivo PDF válido.');
     },
     'word-to-pdf': (files, { wordFiles }) => {
       if (wordFiles.length === 1 && wordFiles.length === files.length) {
@@ -101,7 +101,7 @@
         throw new Error('Para converter Word em PDF, envie apenas um arquivo DOC ou DOCX por vez.');
       }
 
-      throw new Error('Selecione um arquivo DOC ou DOCX valido.');
+      throw new Error('Selecione um arquivo DOC ou DOCX válido.');
     },
     'powerpoint-to-pdf': (files, { powerpointFiles }) => {
       if (powerpointFiles.length === 1 && powerpointFiles.length === files.length) {
@@ -112,7 +112,7 @@
         throw new Error('Para converter PowerPoint em PDF, envie apenas um arquivo PPT ou PPTX por vez.');
       }
 
-      throw new Error('Selecione um arquivo PPT ou PPTX valido.');
+      throw new Error('Selecione um arquivo PPT ou PPTX válido.');
     }
   });
 
@@ -124,13 +124,13 @@
     const powerpointFiles = files.filter(isPowerpointFile);
 
     if (!tool?.available) {
-      throw new Error(tool?.lockedMessage || 'Esta ferramenta ainda nao esta disponivel.');
+      throw new Error(tool?.lockedMessage || 'Esta ferramenta ainda não está disponível.');
     }
 
     const validateFiles = toolFileValidators[tool.id];
 
     if (!validateFiles) {
-      throw new Error(tool.lockedMessage || 'Esta ferramenta ainda nao esta disponivel.');
+      throw new Error(tool.lockedMessage || 'Esta ferramenta ainda não está disponível.');
     }
 
     return validateFiles(files, {

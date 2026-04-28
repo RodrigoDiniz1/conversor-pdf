@@ -2,26 +2,26 @@ const toolCatalog = {
   'jpg-to-pdf': {
     id: 'jpg-to-pdf',
     title: 'JPG para PDF',
-    cardDescription: 'Converta uma ou mais imagens JPG ou JPEG em um arquivo PDF unico.',
-    cardHighlights: ['Aceita varias imagens', 'Entrega um PDF unico'],
-    detailDescription: 'Envie uma ou mais imagens JPG/JPEG e gere um PDF unico em uma tela dedicada para esse fluxo.',
+    cardDescription: 'Converta uma ou mais imagens JPG ou JPEG em um único arquivo PDF.',
+    cardHighlights: ['Aceita várias imagens', 'Entrega um PDF único'],
+    detailDescription: 'Envie uma ou mais imagens JPG/JPEG e gere um PDF único em uma tela dedicada para esse fluxo.',
     note: 'A ordem final do PDF segue a ordem em que os arquivos forem enviados nesta etapa.',
     section: 'active',
-    kicker: 'Conversao ativa',
-    helper: 'Envie uma ou mais imagens JPG/JPEG para montar um PDF unico.',
+    kicker: 'Conversão ativa',
+    helper: 'Envie uma ou mais imagens JPG/JPEG para montar um PDF único.',
     available: true,
-    status: 'Disponivel agora',
+    status: 'Disponível agora',
     endpoint: '/upload/jpg-to-pdf',
     fieldName: 'files',
     accept: '.jpg,.jpeg,image/jpeg,image/jpg',
     allowMultiple: true,
     chooseLabel: 'Selecionar imagens JPG',
     idleSubtitle: 'Ou solte imagens JPG/JPEG aqui',
-    lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
+    lockedSubtitle: 'Esta ferramenta ainda não está disponível',
     processingMessage: 'Enviando as imagens e montando o PDF final...',
-    successMessage: 'Conversao concluida. O PDF foi baixado automaticamente.',
-    readyMessage: (fileCount) => `${fileCount} imagem(ns) pronta(s) para conversao.`,
-    receivedMessage: (fileCount) => `${fileCount} imagem(ns) recebida(s). A conversao comeca agora.`,
+    successMessage: 'Conversão concluída. O PDF foi baixado automaticamente.',
+    readyMessage: (fileCount) => `${fileCount} imagem(ns) pronta(s) para conversão.`,
+    receivedMessage: (fileCount) => `${fileCount} imagem(ns) recebida(s). A conversão começa agora.`,
     defaultDownloadName: 'resultado-convertido.pdf',
     badges: [
       { type: 'jpg', label: 'JPG' },
@@ -31,26 +31,26 @@ const toolCatalog = {
   'pdf-to-jpg': {
     id: 'pdf-to-jpg',
     title: 'PDF para JPG',
-    cardDescription: 'Transforme seu PDF em imagens JPG e baixe tudo em um unico arquivo ZIP.',
-    cardHighlights: ['Recebe 1 PDF por vez', 'Baixa um ZIP com paginas JPG'],
-    detailDescription: 'Envie um PDF por vez e receba um ZIP com todas as paginas convertidas em JPG.',
-    note: 'Quando o PDF depender de fontes do sistema, a tela avisa para deixar claro quando a fidelidade tipografica pode variar.',
+    cardDescription: 'Transforme seu PDF em imagens JPG e baixe tudo em um único arquivo ZIP.',
+    cardHighlights: ['Recebe um PDF por vez', 'Baixa um ZIP com páginas JPG'],
+    detailDescription: 'Envie um PDF por vez e receba um ZIP com todas as páginas convertidas em JPG.',
+    note: 'Quando o PDF depender de fontes do sistema, a tela avisa para deixar claro quando a fidelidade tipográfica pode variar.',
     section: 'active',
-    kicker: 'Conversao ativa',
-    helper: 'Envie 1 PDF por vez e receba um ZIP com todas as paginas em JPG.',
+    kicker: 'Conversão ativa',
+    helper: 'Envie um PDF por vez e receba um ZIP com todas as páginas em JPG.',
     available: true,
-    status: 'Disponivel agora',
+    status: 'Disponível agora',
     endpoint: '/upload/pdf-to-jpg',
     fieldName: 'file',
     accept: '.pdf,application/pdf',
     allowMultiple: false,
     chooseLabel: 'Selecionar arquivo PDF',
     idleSubtitle: 'Ou solte um PDF aqui',
-    lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
-    processingMessage: 'Enviando o PDF e convertendo as paginas em JPG...',
-    successMessage: 'Conversao concluida. O ZIP com as imagens foi baixado automaticamente.',
-    readyMessage: () => 'PDF pronto para conversao.',
-    receivedMessage: () => 'PDF recebido. A conversao comeca agora.',
+    lockedSubtitle: 'Esta ferramenta ainda não está disponível',
+    processingMessage: 'Enviando o PDF e convertendo as páginas em JPG...',
+    successMessage: 'Conversão concluída. O ZIP com as imagens foi baixado automaticamente.',
+    readyMessage: () => 'PDF pronto para conversão.',
+    receivedMessage: () => 'PDF recebido. A conversão começa agora.',
     defaultDownloadName: 'resultado-convertido.zip',
     badges: [
       { type: 'pdf', label: 'PDF' },
@@ -62,24 +62,24 @@ const toolCatalog = {
     title: 'Remover Background',
     cardDescription: 'Recorte o fundo da imagem com alta qualidade e baixe o resultado em PNG transparente.',
     cardHighlights: ['Aceita JPG, PNG e WebP', 'Entrega PNG transparente'],
-    detailDescription: 'Envie uma imagem JPG, PNG ou WebP por vez para remover o fundo e baixar um PNG transparente pronto para catalogos, thumbnails e design.',
-    note: 'A saida final e gerada em PNG com transparencia para preservar melhor o recorte.',
+    detailDescription: 'Envie uma imagem JPG, PNG ou WebP por vez para remover o fundo e baixar um PNG transparente, pronto para catálogos, miniaturas e design.',
+    note: 'A saída final é gerada em PNG com transparência para preservar melhor o recorte.',
     section: 'active',
-    kicker: 'Edicao de imagem',
-    helper: 'Envie 1 imagem por vez e receba um PNG transparente sem o background.',
+    kicker: 'Edição de imagem',
+    helper: 'Envie uma imagem por vez e receba um PNG transparente sem o fundo.',
     available: true,
-    status: 'Disponivel agora',
+    status: 'Disponível agora',
     endpoint: '/upload/remove-background',
     fieldName: 'file',
     accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/jpg,image/png,image/webp',
     allowMultiple: false,
     chooseLabel: 'Selecionar imagem',
     idleSubtitle: 'Ou solte uma imagem JPG, PNG ou WebP aqui',
-    lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
-    processingMessage: 'Preparando o recorte no seu navegador e baixando os recursos da IA, se necessario...',
-    successMessage: 'Recorte concluido. O PNG transparente foi baixado automaticamente.',
+    lockedSubtitle: 'Esta ferramenta ainda não está disponível',
+    processingMessage: 'Preparando o recorte no seu navegador e baixando os recursos da IA, se necessário...',
+    successMessage: 'Recorte concluído. O PNG transparente foi baixado automaticamente.',
     readyMessage: () => 'Imagem pronta para recorte.',
-    receivedMessage: () => 'Imagem recebida. O recorte sera feito no seu navegador.',
+    receivedMessage: () => 'Imagem recebida. O recorte será feito no seu navegador.',
     defaultDownloadName: 'imagem-sem-fundo-convertida.png',
     badges: [
       { type: 'image', label: 'IMG' },
@@ -89,26 +89,26 @@ const toolCatalog = {
   'merge-pdf': {
     id: 'merge-pdf',
     title: 'Juntar PDF',
-    cardDescription: 'Mescle dois ou mais arquivos PDF em um unico documento final.',
-    cardHighlights: ['Une dois ou mais PDFs', 'Mantem a ordem enviada'],
-    detailDescription: 'Envie dois ou mais PDFs e receba um arquivo final unificado em uma tela dedicada a montagem do documento.',
-    note: 'A juncao respeita a ordem em que os arquivos forem enviados nesta etapa.',
+    cardDescription: 'Mescle dois ou mais arquivos PDF em um único documento final.',
+    cardHighlights: ['Une dois ou mais PDFs', 'Mantém a ordem enviada'],
+    detailDescription: 'Envie dois ou mais PDFs e receba um arquivo final unificado em uma tela dedicada à montagem do documento.',
+    note: 'A junção respeita a ordem em que os arquivos forem enviados nesta etapa.',
     section: 'organize',
     kicker: 'Organizar PDF',
-    helper: 'Envie dois ou mais PDFs para juntar tudo em um unico arquivo final.',
+    helper: 'Envie dois ou mais PDFs para juntar tudo em um único arquivo final.',
     available: true,
-    status: 'Disponivel agora',
+    status: 'Disponível agora',
     endpoint: '/upload/merge-pdf',
     fieldName: 'files',
     accept: '.pdf,application/pdf',
     allowMultiple: true,
     chooseLabel: 'Selecionar arquivos PDF',
     idleSubtitle: 'Ou solte dois ou mais PDFs aqui',
-    lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
-    processingMessage: 'Enviando os PDFs e juntando as paginas...',
-    successMessage: 'Juncao concluida. O PDF final foi baixado automaticamente.',
-    readyMessage: (fileCount) => `${fileCount} PDF(s) pronto(s) para juncao.`,
-    receivedMessage: (fileCount) => `${fileCount} PDF(s) recebido(s). A juncao comeca agora.`,
+    lockedSubtitle: 'Esta ferramenta ainda não está disponível',
+    processingMessage: 'Enviando os PDFs e juntando as páginas...',
+    successMessage: 'Junção concluída. O PDF final foi baixado automaticamente.',
+    readyMessage: (fileCount) => `${fileCount} PDF(s) pronto(s) para junção.`,
+    receivedMessage: (fileCount) => `${fileCount} PDF(s) recebido(s). A junção começa agora.`,
     defaultDownloadName: 'pdfs-unidos-convertido.pdf',
     badges: [
       { type: 'pdf', label: 'PDF' },
@@ -118,26 +118,26 @@ const toolCatalog = {
   'split-pdf': {
     id: 'split-pdf',
     title: 'Dividir PDF',
-    cardDescription: 'Separe um PDF por paginas e baixe tudo organizado em um unico ZIP.',
-    cardHighlights: ['Separa pagina por pagina', 'Entrega tudo em ZIP'],
-    detailDescription: 'Envie um PDF por vez e receba um ZIP com um arquivo PDF separado para cada pagina do documento.',
-    note: 'Cada pagina do PDF original sera exportada como um arquivo individual dentro do ZIP final.',
+    cardDescription: 'Separe um PDF por páginas e baixe tudo organizado em um único ZIP.',
+    cardHighlights: ['Separa página por página', 'Entrega tudo em ZIP'],
+    detailDescription: 'Envie um PDF por vez e receba um ZIP com um arquivo PDF separado para cada página do documento.',
+    note: 'Cada página do PDF original será exportada como um arquivo individual dentro do ZIP final.',
     section: 'organize',
     kicker: 'Organizar PDF',
-    helper: 'Envie 1 PDF por vez para gerar um ZIP com cada pagina em um arquivo PDF separado.',
+    helper: 'Envie um PDF por vez para gerar um ZIP com cada página em um arquivo PDF separado.',
     available: true,
-    status: 'Disponivel agora',
+    status: 'Disponível agora',
     endpoint: '/upload/split-pdf',
     fieldName: 'file',
     accept: '.pdf,application/pdf',
     allowMultiple: false,
     chooseLabel: 'Selecionar arquivo PDF',
     idleSubtitle: 'Ou solte um PDF aqui',
-    lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
-    processingMessage: 'Enviando o PDF e separando as paginas em arquivos individuais...',
-    successMessage: 'Divisao concluida. O ZIP com os PDFs foi baixado automaticamente.',
-    readyMessage: () => 'PDF pronto para divisao.',
-    receivedMessage: () => 'PDF recebido. A divisao comeca agora.',
+    lockedSubtitle: 'Esta ferramenta ainda não está disponível',
+    processingMessage: 'Enviando o PDF e separando as páginas em arquivos individuais...',
+    successMessage: 'Divisão concluída. O ZIP com os PDFs foi baixado automaticamente.',
+    readyMessage: () => 'PDF pronto para divisão.',
+    receivedMessage: () => 'PDF recebido. A divisão começa agora.',
     defaultDownloadName: 'pdf-dividido-convertido.zip',
     badges: [
       { type: 'pdf', label: 'PDF' },
@@ -148,25 +148,25 @@ const toolCatalog = {
     id: 'word-to-pdf',
     title: 'Word para PDF',
     cardDescription: 'Converta documentos Word em PDF com um fluxo direto e pronto para download.',
-    cardHighlights: ['Recebe 1 DOC ou DOCX por vez', 'Entrega um PDF unico'],
-    detailDescription: 'Envie um arquivo DOC ou DOCX por vez. Quando o backend tiver LibreOffice, o PDF sai com bem mais fidelidade; sem ele, DOCX ainda pode usar um fallback textual.',
-    note: 'No deploy com LibreOffice, o backend faz a conversao real do documento. Se esse binario nao estiver disponivel, apenas DOCX pode cair no fallback textual.',
+    cardHighlights: ['Recebe um DOC ou DOCX por vez', 'Entrega um PDF único'],
+    detailDescription: 'Envie um arquivo DOC ou DOCX por vez. Quando o backend tiver o LibreOffice disponível, o PDF sai com mais fidelidade; sem ele, o DOCX ainda pode usar um fallback textual.',
+    note: 'No deploy com LibreOffice, o backend faz a conversão real do documento. Se esse binário não estiver disponível, apenas DOCX pode cair no fallback textual.',
     section: 'future',
     kicker: 'Converter para PDF',
-    helper: 'Envie 1 arquivo DOC ou DOCX por vez para gerar um PDF unico.',
+    helper: 'Envie um arquivo DOC ou DOCX por vez para gerar um PDF único.',
     available: true,
-    status: 'Disponivel agora',
+    status: 'Disponível agora',
     endpoint: '/upload/word-to-pdf',
     fieldName: 'file',
     accept: '.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     allowMultiple: false,
     chooseLabel: 'Selecionar arquivo Word',
     idleSubtitle: 'Ou solte um arquivo DOC ou DOCX aqui',
-    lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
+    lockedSubtitle: 'Esta ferramenta ainda não está disponível',
     processingMessage: 'Enviando o arquivo Word e montando o PDF final...',
-    successMessage: 'Conversao concluida. O PDF foi baixado automaticamente.',
-    readyMessage: () => 'Arquivo Word pronto para conversao.',
-    receivedMessage: () => 'Arquivo Word recebido. A conversao comeca agora.',
+    successMessage: 'Conversão concluída. O PDF foi baixado automaticamente.',
+    readyMessage: () => 'Arquivo Word pronto para conversão.',
+    receivedMessage: () => 'Arquivo Word recebido. A conversão começa agora.',
     defaultDownloadName: 'word-convertido.pdf',
     badges: [
       { type: 'word', label: 'DOC' },
@@ -176,26 +176,26 @@ const toolCatalog = {
   'powerpoint-to-pdf': {
     id: 'powerpoint-to-pdf',
     title: 'PowerPoint para PDF',
-    cardDescription: 'Converta apresentacoes PowerPoint em PDF mantendo a leitura slide a slide.',
-    cardHighlights: ['Recebe 1 PPT ou PPTX por vez', 'Entrega um PDF unico'],
-    detailDescription: 'Envie um arquivo PPT ou PPTX por vez. Quando o backend tiver LibreOffice, o PDF sai com bem mais fidelidade; sem ele, PPTX ainda pode usar um fallback textual.',
-    note: 'No deploy com LibreOffice, o backend faz a conversao real dos slides. Se esse binario nao estiver disponivel, apenas PPTX pode cair no fallback textual.',
+    cardDescription: 'Converta apresentações PowerPoint em PDF mantendo a leitura slide a slide.',
+    cardHighlights: ['Recebe um PPT ou PPTX por vez', 'Entrega um PDF único'],
+    detailDescription: 'Envie um arquivo PPT ou PPTX por vez. Quando o backend tiver o LibreOffice disponível, o PDF sai com mais fidelidade; sem ele, o PPTX ainda pode usar um fallback textual.',
+    note: 'No deploy com LibreOffice, o backend faz a conversão real dos slides. Se esse binário não estiver disponível, apenas PPTX pode cair no fallback textual.',
     section: 'future',
     kicker: 'Converter para PDF',
-    helper: 'Envie 1 arquivo PPT ou PPTX por vez para gerar um PDF unico.',
+    helper: 'Envie um arquivo PPT ou PPTX por vez para gerar um PDF único.',
     available: true,
-    status: 'Disponivel agora',
+    status: 'Disponível agora',
     endpoint: '/upload/powerpoint-to-pdf',
     fieldName: 'file',
     accept: '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation',
     allowMultiple: false,
     chooseLabel: 'Selecionar arquivo PowerPoint',
     idleSubtitle: 'Ou solte um arquivo PPT ou PPTX aqui',
-    lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
+    lockedSubtitle: 'Esta ferramenta ainda não está disponível',
     processingMessage: 'Enviando o arquivo PowerPoint e montando o PDF final...',
-    successMessage: 'Conversao concluida. O PDF foi baixado automaticamente.',
-    readyMessage: () => 'Arquivo PowerPoint pronto para conversao.',
-    receivedMessage: () => 'Arquivo PowerPoint recebido. A conversao comeca agora.',
+    successMessage: 'Conversão concluída. O PDF foi baixado automaticamente.',
+    readyMessage: () => 'Arquivo PowerPoint pronto para conversão.',
+    receivedMessage: () => 'Arquivo PowerPoint recebido. A conversão começa agora.',
     defaultDownloadName: 'slides-convertidos.pdf',
     badges: [
       { type: 'powerpoint', label: 'PPT' },
@@ -248,12 +248,12 @@ const toolExperienceCatalog = {
   }
 };
 
-const SERVER_UNAVAILABLE_MESSAGE = 'Nao foi possivel encontrar o servidor da conversao.';
-const REQUEST_TIMEOUT_MESSAGE = 'O backend nao respondeu a tempo para concluir o envio.';
-const NETWORK_CONNECTION_MESSAGE = 'Nao foi possivel conectar ao servidor.';
+const SERVER_UNAVAILABLE_MESSAGE = 'Não foi possível encontrar o servidor de conversão.';
+const REQUEST_TIMEOUT_MESSAGE = 'O backend não respondeu a tempo de concluir o envio.';
+const NETWORK_CONNECTION_MESSAGE = 'Não foi possível conectar ao servidor.';
 const SERVER_UNAVAILABLE_HINTS = [
-  'Confirme se o backend foi publicado ou se o servidor local esta no ar.',
-  'Verifique a URL da API e as configuracoes do ambiente antes do deploy.',
+  'Confirme se o backend foi publicado ou se o servidor local está no ar.',
+  'Verifique a URL da API e as configurações do ambiente antes do deploy.',
   'Se o servidor acabou de subir, espere alguns segundos e tente novamente.'
 ];
 const DEFAULT_ACTIVE_TOOL_ID = toolSections.active[0];
@@ -261,8 +261,8 @@ const REMOVE_BACKGROUND_TOOL_ID = 'remove-background';
 const BROWSER_BACKGROUND_REMOVAL_MODULE_URL = new URL('./vendor/background-removal/dist/index.mjs', window.location.href).href;
 const BROWSER_BACKGROUND_REMOVAL_PRIMARY_MODEL = 'isnet_fp16';
 const BROWSER_BACKGROUND_REMOVAL_FALLBACK_MODEL = 'isnet_quint8';
-const BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR = 'Nao foi possivel concluir o recorte neste navegador.';
-const BROWSER_BACKGROUND_REMOVAL_NETWORK_ERROR = 'Nao foi possivel baixar os recursos do recorte no seu navegador.';
+const BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR = 'Não foi possível concluir o recorte neste navegador.';
+const BROWSER_BACKGROUND_REMOVAL_NETWORK_ERROR = 'Não foi possível baixar os recursos do recorte no seu navegador.';
 const BROWSER_BACKGROUND_REMOVAL_FALLBACK_WARNING = 'Seu navegador usou o modo compacto para concluir o recorte.';
 
 const state = {
@@ -300,10 +300,10 @@ const getServerUnavailableMessage = () => {
   const configuredApiBaseUrl = getConfiguredApiBaseUrl();
 
   if (!configuredApiBaseUrl) {
-    return `${SERVER_UNAVAILABLE_MESSAGE} Verifique se a API do backend esta no ar.`;
+    return `${SERVER_UNAVAILABLE_MESSAGE} Verifique se a API do backend está no ar.`;
   }
 
-  return `${SERVER_UNAVAILABLE_MESSAGE} Verifique se a API configurada em ${configuredApiBaseUrl} esta no ar.`;
+  return `${SERVER_UNAVAILABLE_MESSAGE} Verifique se a API configurada em ${configuredApiBaseUrl} está no ar.`;
 };
 
 const brandHomeButton = document.getElementById('brand-home-button');
@@ -393,10 +393,10 @@ const getErrorDescriptionForMessage = (message = '') => {
   }
 
   if (includesAnyMessage(message, [SERVER_UNAVAILABLE_MESSAGE, NETWORK_CONNECTION_MESSAGE])) {
-    return 'Nao foi possivel se conectar ao backend para iniciar a conversao.';
+    return 'Não foi possível se conectar ao backend para iniciar a conversão.';
   }
 
-  return 'Nao foi possivel concluir a comunicacao com o backend.';
+  return 'Não foi possível concluir a comunicação com o backend.';
 };
 
 const formatSize = (bytes) => {
@@ -454,7 +454,7 @@ const shouldRetryBackgroundRemovalWithFallbackModel = (error) => {
 
 const getBackgroundRemovalClientErrorMessage = (error) => {
   if (isBackgroundRemovalNetworkError(error)) {
-    return `${BROWSER_BACKGROUND_REMOVAL_NETWORK_ERROR} Verifique sua conexao e tente novamente.`;
+    return `${BROWSER_BACKGROUND_REMOVAL_NETWORK_ERROR} Verifique sua conexão e tente novamente.`;
   }
 
   const detail = getBackgroundRemovalErrorDetail(error);
@@ -466,7 +466,7 @@ const getBackgroundRemovalClientErrorMessage = (error) => {
   const normalizedDetail = detail.toLowerCase();
 
   if (includesAnyMessage(normalizedDetail, ['out of memory', 'failed to create session', 'not enough memory', 'abort(', 'wasm'])) {
-    return `${BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR} Este dispositivo nao conseguiu carregar o modelo de recorte.`;
+    return `${BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR} Este dispositivo não conseguiu carregar o modelo de recorte.`;
   }
 
   return `${BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR} ${detail}`;
@@ -603,7 +603,7 @@ const runBackgroundRemovalInBrowser = async (file, model = browserBackgroundRemo
 
 const runClientSideTool = async (tool) => {
   if (!isClientSideTool(tool)) {
-    throw new Error('Ferramenta client-side invalida.');
+    throw new Error('Ferramenta client-side inválida.');
   }
 
   const [file] = state.files;
@@ -805,7 +805,7 @@ const getDocumentTitle = () => {
   }
 
   if (state.view === 'error') {
-    return `Servidor indisponivel | ${tool?.title || 'Ferramenta'}`;
+    return `Servidor indisponível | ${tool?.title || 'Ferramenta'}`;
   }
 
   if (state.view === 'comingSoon') {
@@ -852,7 +852,7 @@ const syncToolView = () => {
   dropzone.setAttribute('aria-disabled', String(!tool.available));
   dropzone.setAttribute('aria-busy', String(state.isBusy));
   chooseButtonText.textContent = state.isBusy ? 'PROCESSANDO...' : tool.chooseLabel;
-  dropzoneSubtitle.textContent = state.isBusy ? 'Seus arquivos estao sendo processados' : (tool.available ? tool.idleSubtitle : tool.lockedSubtitle);
+  dropzoneSubtitle.textContent = state.isBusy ? 'Seus arquivos estão sendo processados' : (tool.available ? tool.idleSubtitle : tool.lockedSubtitle);
 };
 
 const syncSuccessView = () => {
@@ -863,8 +863,8 @@ const syncSuccessView = () => {
     return;
   }
 
-  successTitle.textContent = `${tool.title} concluido`;
-  successDescription.textContent = tool.successMessage || 'Seu arquivo foi gerado e o download ja foi iniciado.';
+  successTitle.textContent = `${tool.title} concluído`;
+  successDescription.textContent = tool.successMessage || 'Seu arquivo foi gerado e o download já foi iniciado.';
   successFileName.textContent = result.fileName || tool.defaultDownloadName;
   successNote.textContent = result.warningMessage || '';
   successNote.classList.toggle('is-hidden', !successNote.textContent);
@@ -873,7 +873,7 @@ const syncSuccessView = () => {
 const syncErrorView = () => {
   const tool = getCurrentTool();
 
-  errorTitle.textContent = `Nao foi possivel concluir ${tool?.title || 'essa conversao'}`;
+  errorTitle.textContent = `Não foi possível concluir ${tool?.title || 'essa conversão'}`;
   errorDescription.textContent = state.lastError?.description || getErrorDescriptionForMessage(state.lastError?.message || '');
   errorDetail.textContent = state.lastError?.message || SERVER_UNAVAILABLE_MESSAGE;
 };
@@ -889,7 +889,7 @@ const syncComingSoonView = () => {
   comingSoonBadgeStack.innerHTML = getStateBadgeStackMarkup(tool.badges);
   comingSoonKicker.textContent = tool.kicker;
   comingSoonTitle.textContent = experience.comingSoonTitle || `${tool.title} chega em breve`;
-  comingSoonDescription.textContent = experience.comingSoonDescription || 'Esse fluxo ainda nao esta disponivel.';
+  comingSoonDescription.textContent = experience.comingSoonDescription || 'Esse fluxo ainda não está disponível.';
 };
 
 const showToolView = () => {
@@ -1090,7 +1090,7 @@ const getOrderedApiOriginCandidates = () => {
 const shouldRetryWithNextOrigin = (statusCode) => statusCode === 404 || statusCode === 405;
 
 const parseUploadErrorMessage = async (xhr) => {
-  let message = `Falha na conversao (HTTP ${xhr.status || 'sem status'}).`;
+  let message = `Falha na conversão (HTTP ${xhr.status || 'sem status'}).`;
 
   try {
     const responseBlob = xhr.response;
@@ -1108,7 +1108,7 @@ const parseUploadErrorMessage = async (xhr) => {
       }
     }
   } catch (_error) {
-    message = `Falha na conversao (HTTP ${xhr.status || 'sem status'}).`;
+    message = `Falha na conversão (HTTP ${xhr.status || 'sem status'}).`;
   }
 
   return message;
@@ -1321,7 +1321,7 @@ dropzone.addEventListener('click', (event) => {
 
   if (!tool.available) {
     event.preventDefault();
-    setStatus(tool.lockedMessage, 'warning');
+    setStatus(tool.lockedMessage || 'Esta ferramenta ainda não está disponível.', 'warning');
     return;
   }
 
@@ -1352,7 +1352,7 @@ dropzone.addEventListener('drop', async (event) => {
   dropzone.classList.remove('is-dragging');
 
   if (!tool?.available) {
-    setStatus(tool?.lockedMessage || 'Esta ferramenta ainda nao esta disponivel.', 'warning');
+    setStatus(tool?.lockedMessage || 'Esta ferramenta ainda não está disponível.', 'warning');
     return;
   }
 

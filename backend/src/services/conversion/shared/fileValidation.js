@@ -9,9 +9,9 @@ const WEBP_RIFF_SIGNATURE = Buffer.from('RIFF');
 const WEBP_FORMAT_SIGNATURE = Buffer.from('WEBP');
 const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 const IMAGE_SIGNATURE_HEADER_BYTES = 12;
-const INVALID_PDF_FILE_MESSAGE = 'O arquivo enviado nao e um PDF valido.';
-const INVALID_JPG_FILE_MESSAGE = 'O arquivo enviado nao e uma imagem JPG/JPEG valida.';
-const INVALID_IMAGE_FILE_MESSAGE = 'O arquivo enviado nao e uma imagem JPG, PNG ou WebP valida.';
+const INVALID_PDF_FILE_MESSAGE = 'O arquivo enviado não é um PDF válido.';
+const INVALID_JPG_FILE_MESSAGE = 'O arquivo enviado não é uma imagem JPG/JPEG válida.';
+const INVALID_IMAGE_FILE_MESSAGE = 'O arquivo enviado não é uma imagem JPG, PNG ou WebP válida.';
 
 const buildInvalidFileError = (message) => ({
   statusCode: 400,

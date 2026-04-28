@@ -213,12 +213,12 @@ const splitPdf = createConversionHandler({
 });
 
 const wordToPdf = createSingleOfficePdfHandler({
-  badRequestMessage: 'Nenhum arquivo DOCX foi enviado.',
+  badRequestMessage: 'Nenhum arquivo Word foi enviado.',
   convert: conversionService.convertWordToPdf
 });
 
 const powerpointToPdf = createSingleOfficePdfHandler({
-  badRequestMessage: 'Nenhum arquivo PPTX foi enviado.',
+  badRequestMessage: 'Nenhum arquivo PowerPoint foi enviado.',
   convert: conversionService.convertPowerpointToPdf
 });
 
