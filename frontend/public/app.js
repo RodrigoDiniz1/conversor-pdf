@@ -278,6 +278,9 @@ const LOCAL_API_PORT = '3000';
 let preferredApiBaseUrl = null;
 let browserBackgroundRemovalModulePromise = null;
 let browserBackgroundRemovalModel = BROWSER_BACKGROUND_REMOVAL_PRIMARY_MODEL;
+let browserBackgroundRemovalPreloadPromise = null;
+let browserBackgroundRemovalPreloadModel = null;
+let browserBackgroundRemovalPreloadedModel = null;
 
 const buildUniqueOrigins = (origins) => Array.from(new Set(origins.filter(Boolean)));
 
@@ -512,16 +515,25 @@ const updateBackgroundRemovalProgress = (key, current, total) => {
   setStatus('Preparando o motor de recorte no seu navegador...');
 };
 
+const setBackgroundRemovalPreloadStatus = (message = '') => {
+  if (state.view !== 'tool' || state.isBusy || state.files.length > 0 || !isClientSideTool(getCurrentTool())) {
+    return;
+  }
+
+  setStatus(message);
+};
+
 const loadBackgroundRemovalBrowserModule = async () => {
   browserBackgroundRemovalModulePromise = browserBackgroundRemovalModulePromise || import(BROWSER_BACKGROUND_REMOVAL_MODULE_URL)
     .then((module) => ({
+      preload: module.preload,
       removeBackground: module.removeBackground || module.default
     }));
 
   return browserBackgroundRemovalModulePromise;
 };
 
-const createBackgroundRemovalClientConfig = (model = browserBackgroundRemovalModel) => ({
+const createBackgroundRemovalBaseConfig = (model = browserBackgroundRemovalModel) => ({
   debug: false,
   device: 'cpu',
   model,
@@ -530,11 +542,61 @@ const createBackgroundRemovalClientConfig = (model = browserBackgroundRemovalMod
     format: 'image/png',
     quality: 1,
     type: 'foreground'
-  },
+  }
+});
+
+const createBackgroundRemovalClientConfig = (model = browserBackgroundRemovalModel) => ({
+  ...createBackgroundRemovalBaseConfig(model),
   progress: updateBackgroundRemovalProgress
 });
 
+const createBackgroundRemovalPreloadConfig = (model = browserBackgroundRemovalModel) => (
+  createBackgroundRemovalBaseConfig(model)
+);
+
+const preloadBackgroundRemovalResources = async (model = browserBackgroundRemovalModel) => {
+  if (browserBackgroundRemovalPreloadedModel === model) {
+    return;
+  }
+
+  if (browserBackgroundRemovalPreloadPromise && browserBackgroundRemovalPreloadModel === model) {
+    return browserBackgroundRemovalPreloadPromise;
+  }
+
+  browserBackgroundRemovalPreloadModel = model;
+  browserBackgroundRemovalPreloadPromise = (async () => {
+    const { preload } = await loadBackgroundRemovalBrowserModule();
+
+    if (typeof preload !== 'function') {
+      return;
+    }
+
+    setBackgroundRemovalPreloadStatus('Preparando a IA de recorte no seu navegador...');
+    await preload(createBackgroundRemovalPreloadConfig(model));
+    browserBackgroundRemovalPreloadedModel = model;
+  })()
+    .catch((error) => {
+      if (browserBackgroundRemovalPreloadModel === model) {
+        browserBackgroundRemovalPreloadPromise = null;
+        browserBackgroundRemovalPreloadModel = null;
+      }
+
+      throw error;
+    })
+    .finally(() => {
+      if (browserBackgroundRemovalPreloadModel === model) {
+        browserBackgroundRemovalPreloadPromise = null;
+        browserBackgroundRemovalPreloadModel = null;
+      }
+
+      setBackgroundRemovalPreloadStatus('');
+    });
+
+  return browserBackgroundRemovalPreloadPromise;
+};
+
 const runBackgroundRemovalInBrowser = async (file, model = browserBackgroundRemovalModel) => {
+  await preloadBackgroundRemovalResources(model).catch(() => undefined);
   const { removeBackground } = await loadBackgroundRemovalBrowserModule();
   return removeBackground(file, createBackgroundRemovalClientConfig(model));
 };
@@ -835,6 +897,12 @@ const showToolView = () => {
   syncToolView();
   renderPreviews();
   syncView();
+
+  if (isClientSideTool(getCurrentTool())) {
+    void preloadBackgroundRemovalResources().catch(() => {
+      setBackgroundRemovalPreloadStatus('');
+    });
+  }
 };
 
 const showSuccessView = (result) => {
