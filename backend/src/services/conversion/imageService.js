@@ -50,7 +50,8 @@ const {
 } = require('./shared/fileValidation');
 
 const outputRoot = path.join(__dirname, '..', '..', '..', 'tmp', 'output');
-const BACKGROUND_REMOVAL_MODEL = 'medium';
+const BACKGROUND_REMOVAL_PRIMARY_MODEL = 'medium';
+const BACKGROUND_REMOVAL_FALLBACK_MODEL = 'small';
 const DEFAULT_IMAGE_DENSITY = 72;
 const LOSSLESS_PNG_COMPRESSION_LEVEL = 9;
 const LOSSLESS_PNG_EFFORT = 10;
@@ -64,6 +65,7 @@ const BACKGROUND_REMOVAL_RESOURCE_LIMIT_TOKENS = [
 ensureDirectory(outputRoot);
 
 let backgroundRemovalAssetUrl;
+let backgroundRemovalModel = BACKGROUND_REMOVAL_PRIMARY_MODEL;
 
 const toDirectoryUrl = (directoryPath) => {
   const href = pathToFileURL(directoryPath).href;
@@ -79,8 +81,8 @@ const getBackgroundRemovalAssetUrl = () => {
   return backgroundRemovalAssetUrl;
 };
 
-const getBackgroundRemovalConfig = () => ({
-  model: BACKGROUND_REMOVAL_MODEL,
+const getBackgroundRemovalConfig = (model = backgroundRemovalModel) => ({
+  model,
   publicPath: getBackgroundRemovalAssetUrl(),
   output: {
     format: 'image/png',
@@ -89,16 +91,22 @@ const getBackgroundRemovalConfig = () => ({
   }
 });
 
+const getBackgroundRemovalErrorDetail = (error) => String(error?.message || error || '').trim();
+
+const isBackgroundRemovalResourceLimitError = (error) => {
+  const normalizedDetail = getBackgroundRemovalErrorDetail(error).toLowerCase();
+  return BACKGROUND_REMOVAL_RESOURCE_LIMIT_TOKENS.some((token) => normalizedDetail.includes(token));
+};
+
 const buildBackgroundRemovalError = (error) => {
   if (error?.statusCode) {
     return error;
   }
 
-  const detail = String(error?.message || error || '').trim();
-  const normalizedDetail = detail.toLowerCase();
+  const detail = getBackgroundRemovalErrorDetail(error);
   const failureMessage = 'Falha ao remover o background da imagem.';
 
-  if (BACKGROUND_REMOVAL_RESOURCE_LIMIT_TOKENS.some((token) => normalizedDetail.includes(token))) {
+  if (isBackgroundRemovalResourceLimitError(error)) {
     return {
       statusCode: 503,
       message: 'O servidor atual nao conseguiu iniciar o motor de recorte de imagem. Tente novamente em instantes.'
@@ -156,9 +164,22 @@ const assertValidBackgroundRemovalOutput = (imageBuffer) => {
 
 const createBackgroundRemovalSource = (file) => pathToFileURL(file.path);
 
-const getBackgroundRemovalRawBuffer = async (file) => {
-  const resultBlob = await removeBackgroundImage(createBackgroundRemovalSource(file), getBackgroundRemovalConfig());
+const runBackgroundRemoval = async (file, model = backgroundRemovalModel) => {
+  const resultBlob = await removeBackgroundImage(createBackgroundRemovalSource(file), getBackgroundRemovalConfig(model));
   return Buffer.from(await resultBlob.arrayBuffer());
+};
+
+const getBackgroundRemovalRawBuffer = async (file) => {
+  try {
+    return await runBackgroundRemoval(file, backgroundRemovalModel);
+  } catch (error) {
+    if (backgroundRemovalModel === BACKGROUND_REMOVAL_FALLBACK_MODEL || !isBackgroundRemovalResourceLimitError(error)) {
+      throw error;
+    }
+
+    backgroundRemovalModel = BACKGROUND_REMOVAL_FALLBACK_MODEL;
+    return runBackgroundRemoval(file, backgroundRemovalModel);
+  }
 };
 
 const createBackgroundRemovalResult = ({ imagePath, downloadName }) => ({
