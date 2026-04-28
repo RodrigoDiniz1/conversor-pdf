@@ -169,6 +169,14 @@
 
     <script src="config.js?v=20260422-07"></script>
     <script src="tool-validation.js?v=20260422-07"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "onnxruntime-web": "./vendor/onnxruntime-web/dist/ort.bundle.min.mjs",
+          "onnxruntime-web/webgpu": "./vendor/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs"
+        }
+      }
+    </script>
     <script src="app.js?v=20260422-07"></script>
   </body>
 </html>

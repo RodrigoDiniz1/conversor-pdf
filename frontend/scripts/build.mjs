@@ -5,8 +5,12 @@ import path from 'node:path';
 const frontendRoot = process.cwd();
 const publicDir = path.join(frontendRoot, 'public');
 const imagesDir = path.join(frontendRoot, 'images');
+const nodeModulesDir = path.join(frontendRoot, 'node_modules');
 const distDir = path.join(frontendRoot, 'dist');
 const distImagesDir = path.join(distDir, 'images');
+const distVendorDir = path.join(distDir, 'vendor');
+const backgroundRemovalPackageDir = path.join(nodeModulesDir, '@imgly', 'background-removal');
+const onnxruntimeWebDistDir = path.join(nodeModulesDir, 'onnxruntime-web', 'dist');
 const indexTemplatePath = path.join(publicDir, 'index.html');
 
 const usedImageAssets = [
@@ -77,6 +81,22 @@ if (existsSync(imagesDir)) {
 
     cpSync(sourcePath, path.join(distImagesDir, assetName));
   });
+}
+
+if (existsSync(backgroundRemovalPackageDir)) {
+  cpSync(
+    path.join(backgroundRemovalPackageDir, 'dist'),
+    path.join(distVendorDir, 'background-removal', 'dist'),
+    { recursive: true }
+  );
+}
+
+if (existsSync(onnxruntimeWebDistDir)) {
+  cpSync(
+    onnxruntimeWebDistDir,
+    path.join(distVendorDir, 'onnxruntime-web', 'dist'),
+    { recursive: true }
+  );
 }
 
 writeFileSync(

@@ -76,10 +76,10 @@ const toolCatalog = {
     chooseLabel: 'Selecionar imagem',
     idleSubtitle: 'Ou solte uma imagem JPG, PNG ou WebP aqui',
     lockedSubtitle: 'Esta ferramenta ainda nao esta disponivel',
-    processingMessage: 'Enviando a imagem e removendo o background com alta qualidade...',
+    processingMessage: 'Preparando o recorte no seu navegador e baixando os recursos da IA, se necessario...',
     successMessage: 'Recorte concluido. O PNG transparente foi baixado automaticamente.',
     readyMessage: () => 'Imagem pronta para recorte.',
-    receivedMessage: () => 'Imagem recebida. O recorte comeca agora.',
+    receivedMessage: () => 'Imagem recebida. O recorte sera feito no seu navegador.',
     defaultDownloadName: 'imagem-sem-fundo-convertida.png',
     badges: [
       { type: 'image', label: 'IMG' },
@@ -257,6 +257,13 @@ const SERVER_UNAVAILABLE_HINTS = [
   'Se o servidor acabou de subir, espere alguns segundos e tente novamente.'
 ];
 const DEFAULT_ACTIVE_TOOL_ID = toolSections.active[0];
+const REMOVE_BACKGROUND_TOOL_ID = 'remove-background';
+const BROWSER_BACKGROUND_REMOVAL_MODULE_URL = new URL('./vendor/background-removal/dist/index.mjs', window.location.href).href;
+const BROWSER_BACKGROUND_REMOVAL_PRIMARY_MODEL = 'isnet_fp16';
+const BROWSER_BACKGROUND_REMOVAL_FALLBACK_MODEL = 'isnet_quint8';
+const BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR = 'Nao foi possivel concluir o recorte neste navegador.';
+const BROWSER_BACKGROUND_REMOVAL_NETWORK_ERROR = 'Nao foi possivel baixar os recursos do recorte no seu navegador.';
+const BROWSER_BACKGROUND_REMOVAL_FALLBACK_WARNING = 'Seu navegador usou o modo compacto para concluir o recorte.';
 
 const state = {
   view: 'home',
@@ -269,6 +276,8 @@ const state = {
 
 const LOCAL_API_PORT = '3000';
 let preferredApiBaseUrl = null;
+let browserBackgroundRemovalModulePromise = null;
+let browserBackgroundRemovalModel = BROWSER_BACKGROUND_REMOVAL_PRIMARY_MODEL;
 
 const buildUniqueOrigins = (origins) => Array.from(new Set(origins.filter(Boolean)));
 
@@ -361,6 +370,7 @@ const viewRegistry = {
 const getCurrentTool = () => toolCatalog[state.activeToolId] || null;
 const getCurrentToolExperience = () => toolExperienceCatalog[state.activeToolId] || {};
 const toolValidation = window.ToolValidation;
+const isClientSideTool = (tool) => tool?.id === REMOVE_BACKGROUND_TOOL_ID;
 
 if (!toolValidation?.getValidatedFilesForTool) {
   throw new Error('Tool validation runtime is not available.');
@@ -398,6 +408,67 @@ const formatSize = (bytes) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+const buildClientSidePngName = (fileName = 'imagem') => {
+  const baseName = fileName.replace(/\.[^.]+$/u, '') || 'imagem';
+  return `${baseName}-sem-fundo-convertido.png`;
+};
+
+const getBackgroundRemovalErrorDetail = (error) => String(error?.message || error || '').trim();
+
+const isBackgroundRemovalNetworkError = (error) => {
+  const detail = getBackgroundRemovalErrorDetail(error).toLowerCase();
+
+  return includesAnyMessage(detail, [
+    'failed to fetch',
+    'load failed',
+    'networkerror',
+    'resource metadata not found',
+    'importing a module script failed'
+  ]);
+};
+
+const shouldRetryBackgroundRemovalWithFallbackModel = (error) => {
+  if (isBackgroundRemovalNetworkError(error)) {
+    return false;
+  }
+
+  const detail = getBackgroundRemovalErrorDetail(error).toLowerCase();
+
+  if (!detail) {
+    return true;
+  }
+
+  return includesAnyMessage(detail, [
+    'out of memory',
+    'failed to create session',
+    'not enough memory',
+    'abort(',
+    'wasm',
+    'simd',
+    'webassembly'
+  ]);
+};
+
+const getBackgroundRemovalClientErrorMessage = (error) => {
+  if (isBackgroundRemovalNetworkError(error)) {
+    return `${BROWSER_BACKGROUND_REMOVAL_NETWORK_ERROR} Verifique sua conexao e tente novamente.`;
+  }
+
+  const detail = getBackgroundRemovalErrorDetail(error);
+
+  if (!detail) {
+    return `${BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR} Tente outra imagem ou um navegador mais atual.`;
+  }
+
+  const normalizedDetail = detail.toLowerCase();
+
+  if (includesAnyMessage(normalizedDetail, ['out of memory', 'failed to create session', 'not enough memory', 'abort(', 'wasm'])) {
+    return `${BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR} Este dispositivo nao conseguiu carregar o modelo de recorte.`;
+  }
+
+  return `${BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR} ${detail}`;
+};
+
 const setStatus = (message, type = '') => {
   statusMessage.textContent = message;
   statusMessage.className = 'status-message';
@@ -420,6 +491,89 @@ const updateProgress = (value) => {
   progressWrapper.setAttribute('aria-hidden', 'false');
   progressFill.style.width = `${percentage}%`;
   progressLabel.textContent = `${percentage}%`;
+};
+
+const updateBackgroundRemovalProgress = (key, current, total) => {
+  const safeTotal = Math.max(total || 0, 1);
+
+  if (key.startsWith('compute:')) {
+    updateProgress(88 + ((current / safeTotal) * 12));
+    setStatus('Processando o recorte no seu navegador...');
+    return;
+  }
+
+  updateProgress(12 + ((current / safeTotal) * 68));
+
+  if (key.includes('/models/')) {
+    setStatus('Baixando o modelo de recorte para o seu navegador...');
+    return;
+  }
+
+  setStatus('Preparando o motor de recorte no seu navegador...');
+};
+
+const loadBackgroundRemovalBrowserModule = async () => {
+  browserBackgroundRemovalModulePromise = browserBackgroundRemovalModulePromise || import(BROWSER_BACKGROUND_REMOVAL_MODULE_URL)
+    .then((module) => ({
+      removeBackground: module.removeBackground || module.default
+    }));
+
+  return browserBackgroundRemovalModulePromise;
+};
+
+const createBackgroundRemovalClientConfig = (model = browserBackgroundRemovalModel) => ({
+  debug: false,
+  device: 'cpu',
+  model,
+  proxyToWorker: false,
+  output: {
+    format: 'image/png',
+    quality: 1,
+    type: 'foreground'
+  },
+  progress: updateBackgroundRemovalProgress
+});
+
+const runBackgroundRemovalInBrowser = async (file, model = browserBackgroundRemovalModel) => {
+  const { removeBackground } = await loadBackgroundRemovalBrowserModule();
+  return removeBackground(file, createBackgroundRemovalClientConfig(model));
+};
+
+const runClientSideTool = async (tool) => {
+  if (!isClientSideTool(tool)) {
+    throw new Error('Ferramenta client-side invalida.');
+  }
+
+  const [file] = state.files;
+
+  try {
+    const blob = await runBackgroundRemovalInBrowser(file, browserBackgroundRemovalModel);
+
+    return {
+      blob,
+      fileName: buildClientSidePngName(file.name),
+      warningMessage: browserBackgroundRemovalModel === BROWSER_BACKGROUND_REMOVAL_FALLBACK_MODEL
+        ? BROWSER_BACKGROUND_REMOVAL_FALLBACK_WARNING
+        : ''
+    };
+  } catch (error) {
+    if (
+      browserBackgroundRemovalModel === BROWSER_BACKGROUND_REMOVAL_PRIMARY_MODEL
+      && shouldRetryBackgroundRemovalWithFallbackModel(error)
+    ) {
+      browserBackgroundRemovalModel = BROWSER_BACKGROUND_REMOVAL_FALLBACK_MODEL;
+
+      const blob = await runBackgroundRemovalInBrowser(file, browserBackgroundRemovalModel);
+
+      return {
+        blob,
+        fileName: buildClientSidePngName(file.name),
+        warningMessage: BROWSER_BACKGROUND_REMOVAL_FALLBACK_WARNING
+      };
+    }
+
+    throw new Error(getBackgroundRemovalClientErrorMessage(error));
+  }
 };
 
 const clearPreviews = () => {
@@ -970,6 +1124,14 @@ const uploadWithProgress = async () => {
   throw new Error(getServerUnavailableMessage());
 };
 
+const processCurrentTool = async (tool) => {
+  if (isClientSideTool(tool)) {
+    return runClientSideTool(tool);
+  }
+
+  return uploadWithProgress();
+};
+
 const getValidatedFilesForCurrentTool = (files) => toolValidation.getValidatedFilesForTool(getCurrentTool(), files);
 
 const startConversion = async () => {
@@ -985,18 +1147,18 @@ const startConversion = async () => {
   setStatus(tool.processingMessage);
 
   try {
-    const { blob, fileName, warningMessage } = await uploadWithProgress();
+    const { blob, fileName, warningMessage } = await processCurrentTool(tool);
     updateProgress(100);
     triggerDownload(blob, fileName);
     showSuccessView({ fileName, warningMessage });
   } catch (error) {
     resetProgress();
 
-    if (isServerUnavailableError(error.message)) {
+    if (!isClientSideTool(tool) && isServerUnavailableError(error.message)) {
       showErrorView(error.message);
     } else {
       setStatus(error.message, 'error');
-      dropzoneSubtitle.textContent = tool.idleSubtitle;
+      dropzoneSubtitle.textContent = tool.readyMessage(state.files.length);
     }
   } finally {
     setBusy(false);

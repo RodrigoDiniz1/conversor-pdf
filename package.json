@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node scripts/dev-app.js",
     "dev:server": "nodemon backend/src/server.js",
+    "postinstall": "npm --prefix frontend install",
     "start": "node backend/src/server.js"
   },
   "keywords": [

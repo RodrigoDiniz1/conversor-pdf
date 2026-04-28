@@ -6,6 +6,9 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const app = express();
 const publicPath = path.join(__dirname, '..', '..', 'frontend', 'public');
 const imagesPath = path.join(__dirname, '..', '..', 'frontend', 'images');
+const frontendNodeModulesPath = path.join(__dirname, '..', '..', 'frontend', 'node_modules');
+const backgroundRemovalBrowserPackagePath = path.join(frontendNodeModulesPath, '@imgly', 'background-removal');
+const onnxruntimeWebPackagePath = path.join(frontendNodeModulesPath, 'onnxruntime-web');
 
 const isLoopbackHostname = (hostname) => ['localhost', '127.0.0.1', '::1', '[::1]'].includes(hostname);
 
@@ -110,6 +113,8 @@ const applyCors = (req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(applyCors);
+app.use('/vendor/background-removal', express.static(backgroundRemovalBrowserPackagePath, staticOptions));
+app.use('/vendor/onnxruntime-web', express.static(onnxruntimeWebPackagePath, staticOptions));
 app.use(express.static(publicPath, staticOptions));
 app.use('/images', express.static(imagesPath, staticOptions));
 
