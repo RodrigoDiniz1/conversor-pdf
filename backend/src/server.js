@@ -3,6 +3,7 @@ const path = require('path');
 const app = require('./app');
 const { pruneTemporaryArtifacts } = require('./utils/fileUtils');
 
+const HOST = process.env.HOST || '0.0.0.0';
 const PORT = process.env.PORT || 3000;
 const tempRoot = path.join(__dirname, '..', 'tmp');
 
@@ -18,8 +19,8 @@ const logStartupCleanupError = (error) => {
   console.error('Falha ao limpar artefatos temporarios na inicializacao.', error);
 };
 
-const server = app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+const server = app.listen(PORT, HOST, () => {
+  console.log(`Servidor rodando em http://${HOST}:${PORT}`);
 
   void pruneTemporaryArtifacts({ rootPath: tempRoot })
     .then(logStartupCleanup)
