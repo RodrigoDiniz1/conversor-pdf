@@ -1,7 +1,6 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
-const sharp = require('sharp');
 
 const BACKGROUND_REMOVAL_SESSION_OPTIONS = Object.freeze({
   executionMode: 'sequential',
@@ -13,6 +12,7 @@ const BACKGROUND_REMOVAL_SESSION_OPTIONS = Object.freeze({
 const BACKGROUND_REMOVAL_RUNTIME_UNAVAILABLE_MESSAGE = 'O motor de recorte não está disponível neste servidor no momento.';
 
 let backgroundRemovalRuntime;
+let imageProcessingRuntime;
 
 const ensureBackgroundRemovalRuntimeCompatibility = (ort) => {
   if (!ort?.InferenceSession?.create) {
@@ -123,6 +123,22 @@ const loadBackgroundRemovalRuntime = () => {
   }
 };
 
+const loadImageProcessingRuntime = () => {
+  if (imageProcessingRuntime) {
+    return imageProcessingRuntime;
+  }
+
+  try {
+    imageProcessingRuntime = {
+      sharp: require('sharp')
+    };
+
+    return imageProcessingRuntime;
+  } catch (error) {
+    throw buildBackgroundRemovalRuntimeLoadError(error);
+  }
+};
+
 const isBackgroundRemovalResourceLimitError = (error) => {
   const normalizedDetail = getBackgroundRemovalErrorDetail(error).toLowerCase();
   return BACKGROUND_REMOVAL_RESOURCE_LIMIT_TOKENS.some((token) => normalizedDetail.includes(token));
@@ -176,6 +192,7 @@ const getOutputImageDensity = (sourceMetadata) => {
 };
 
 const encodeLosslessPngWithMetadata = async (imageBuffer, sourceFilePath) => {
+  const { sharp } = loadImageProcessingRuntime();
   const sourceMetadata = await sharp(sourceFilePath).metadata();
 
   return sharp(imageBuffer)

@@ -5,7 +5,6 @@ const path = require('node:path');
 const { fileURLToPath, pathToFileURL } = require('node:url');
 const fontkit = require('fontkit');
 const { PDFDocument } = require('pdf-lib');
-const { GlobalFonts } = require('@napi-rs/canvas');
 
 const { createZipFromDirectory } = require('../../utils/archiveUtils');
 const {
@@ -35,6 +34,7 @@ const PDF_LOADING_OPTIONS = {
   isEvalSupported: false,
   verbosity: 0
 };
+const PDF_RENDER_RUNTIME_UNAVAILABLE_MESSAGE = 'A conversão de PDF em imagens não está disponível neste servidor no momento.';
 
 ensureDirectory(outputRoot);
 
@@ -42,6 +42,7 @@ let pdfJsModulePromise;
 let pdfJsAssetUrls;
 let pdfJsOwnerDocument;
 let systemFontFileIndexPromise;
+let canvasRuntime;
 const fontDiagnosticsStorage = new AsyncLocalStorage();
 
 const createFontDiagnostics = () => ({
@@ -51,6 +52,24 @@ const createFontDiagnostics = () => ({
 });
 
 const getFontDiagnostics = () => fontDiagnosticsStorage.getStore();
+
+const buildPdfCanvasRuntimeLoadError = (error) => {
+  const runtimeError = new Error(String(error?.message || error || '').trim());
+  runtimeError.pdfCanvasRuntimeUnavailable = true;
+  return runtimeError;
+};
+
+const getGlobalFonts = () => {
+  if (!canvasRuntime) {
+    try {
+      canvasRuntime = require('@napi-rs/canvas');
+    } catch (error) {
+      throw buildPdfCanvasRuntimeLoadError(error);
+    }
+  }
+
+  return canvasRuntime.GlobalFonts;
+};
 
 const normalizeFontFamilyName = (family) => family.trim().replace(/\s+/g, ' ').toLowerCase();
 
@@ -266,7 +285,7 @@ class CanvasFontFace {
 
   unload() {
     if (this._fontKeys.length > 0) {
-      GlobalFonts.removeBatch(this._fontKeys);
+      getGlobalFonts().removeBatch(this._fontKeys);
       this._fontKeys = [];
     }
   }
@@ -283,13 +302,14 @@ class CanvasFontFace {
   }
 
   _registerBuffer(source) {
+    const globalFonts = getGlobalFonts();
     const fontBuffer = Buffer.isBuffer(source)
       ? source
       : source instanceof ArrayBuffer
         ? Buffer.from(source)
         : Buffer.from(source.buffer, source.byteOffset, source.byteLength);
 
-    const fontKey = GlobalFonts.register(fontBuffer, this.family);
+    const fontKey = globalFonts.register(fontBuffer, this.family);
 
     if (fontKey) {
       this._fontKeys.push(fontKey);
@@ -298,6 +318,7 @@ class CanvasFontFace {
   }
 
   async _registerCssSource(source) {
+    const globalFonts = getGlobalFonts();
     const localMatches = [...source.matchAll(/local\(([^)]+)\)/g)];
 
     for (const match of localMatches) {
@@ -318,7 +339,7 @@ class CanvasFontFace {
         continue;
       }
 
-      const fontKey = GlobalFonts.registerFromPath(fontPath, this.family);
+      const fontKey = globalFonts.registerFromPath(fontPath, this.family);
 
       if (fontKey) {
         this._fontKeys.push(fontKey);
@@ -329,10 +350,11 @@ class CanvasFontFace {
   }
 
   async _registerLocalSystemFontFamily(candidateName) {
+    const globalFonts = getGlobalFonts();
     const systemFontPaths = await getSystemFontPathsByFamily(candidateName);
 
     for (const fontPath of systemFontPaths) {
-      const fontKey = GlobalFonts.registerFromPath(fontPath, this.family);
+      const fontKey = globalFonts.registerFromPath(fontPath, this.family);
 
       if (fontKey) {
         this._fontKeys.push(fontKey);
@@ -344,8 +366,8 @@ class CanvasFontFace {
       return true;
     }
 
-    if (GlobalFonts.has(candidateName)) {
-      const aliasWasSet = GlobalFonts.setAlias(candidateName, this.family);
+    if (globalFonts.has(candidateName)) {
+      const aliasWasSet = globalFonts.setAlias(candidateName, this.family);
 
       if (aliasWasSet) {
         recordSystemFontSubstitution(this.family, candidateName);
@@ -423,6 +445,13 @@ const getPdfJsAssetUrls = () => {
 };
 
 const buildPdfRenderError = (error) => {
+  if (error?.pdfCanvasRuntimeUnavailable) {
+    return {
+      statusCode: 503,
+      message: PDF_RENDER_RUNTIME_UNAVAILABLE_MESSAGE
+    };
+  }
+
   const baseMessage = 'Falha ao converter o PDF em imagens.';
   const detail = String(error.message || error);
 
