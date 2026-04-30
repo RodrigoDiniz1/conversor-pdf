@@ -577,8 +577,36 @@ const setBackgroundRemovalPreloadStatus = (message = '') => {
   setStatus(message);
 };
 
+const getBackgroundRemovalWorkerErrorDetail = (error) => {
+  if (!error) {
+    return '';
+  }
+
+  const directMessage = String(
+    error.error?.message
+    || error.reason?.message
+    || error.data?.message
+    || error.message
+    || ''
+  ).trim();
+
+  if (directMessage && directMessage !== '[object Event]') {
+    return directMessage;
+  }
+
+  if (error.type === 'error') {
+    return 'Falha ao inicializar o motor de recorte no navegador.';
+  }
+
+  if (error.type === 'messageerror') {
+    return 'Falha ao comunicar com o motor de recorte no navegador.';
+  }
+
+  return '';
+};
+
 const getBackgroundRemovalWorkerError = (error) => {
-  const message = String(error?.message || error || '').trim();
+  const message = getBackgroundRemovalWorkerErrorDetail(error);
   return new Error(message || BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR);
 };
 
@@ -744,6 +772,31 @@ const runClientSideTool = async (tool) => {
     }
 
     throw new Error(getBackgroundRemovalClientErrorMessage(error));
+  }
+};
+
+const runClientSideToolWithFallback = async (tool) => {
+  try {
+    return await runClientSideTool(tool);
+  } catch (error) {
+    if (tool?.id !== REMOVE_BACKGROUND_TOOL_ID) {
+      throw error;
+    }
+
+    resetBackgroundRemovalWorker();
+    setStatus('O recorte no navegador falhou. Tentando concluir pelo servidor...');
+    resetProgress();
+    updateProgress(5);
+
+    try {
+      return await uploadWithProgress();
+    } catch (serverError) {
+      if (isServerUnavailableError(serverError.message)) {
+        throw error;
+      }
+
+      throw serverError;
+    }
   }
 };
 
@@ -1389,7 +1442,7 @@ const uploadWithProgress = async () => {
 
 const processCurrentTool = async (tool) => {
   if (isClientSideTool(tool)) {
-    return runClientSideTool(tool);
+    return runClientSideToolWithFallback(tool);
   }
 
   return uploadWithProgress();
