@@ -1,7 +1,6 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
-const ort = require('onnxruntime-node');
 const sharp = require('sharp');
 
 const BACKGROUND_REMOVAL_SESSION_OPTIONS = Object.freeze({
@@ -11,7 +10,15 @@ const BACKGROUND_REMOVAL_SESSION_OPTIONS = Object.freeze({
   intraOpNumThreads: 1
 });
 
-const ensureBackgroundRemovalRuntimeCompatibility = () => {
+const BACKGROUND_REMOVAL_RUNTIME_UNAVAILABLE_MESSAGE = 'O motor de recorte não está disponível neste servidor no momento.';
+
+let backgroundRemovalRuntime;
+
+const ensureBackgroundRemovalRuntimeCompatibility = (ort) => {
+  if (!ort?.InferenceSession?.create) {
+    return;
+  }
+
   if (ort.InferenceSession.create.__backgroundRemovalThreadLimitApplied) {
     return;
   }
@@ -34,10 +41,6 @@ const ensureBackgroundRemovalRuntimeCompatibility = () => {
   };
   ort.InferenceSession.create.__backgroundRemovalThreadLimitApplied = true;
 };
-
-ensureBackgroundRemovalRuntimeCompatibility();
-
-const { removeBackground: removeBackgroundImage } = require('@imgly/background-removal-node');
 
 const {
   createFriendlyName,
@@ -93,6 +96,33 @@ const getBackgroundRemovalConfig = (model = backgroundRemovalModel) => ({
 
 const getBackgroundRemovalErrorDetail = (error) => String(error?.message || error || '').trim();
 
+const buildBackgroundRemovalRuntimeLoadError = (error) => {
+  const runtimeError = new Error(getBackgroundRemovalErrorDetail(error));
+  runtimeError.backgroundRemovalRuntimeUnavailable = true;
+  return runtimeError;
+};
+
+const loadBackgroundRemovalRuntime = () => {
+  if (backgroundRemovalRuntime) {
+    return backgroundRemovalRuntime;
+  }
+
+  try {
+    const ort = require('onnxruntime-node');
+    ensureBackgroundRemovalRuntimeCompatibility(ort);
+
+    const { removeBackground } = require('@imgly/background-removal-node');
+
+    backgroundRemovalRuntime = {
+      removeBackgroundImage: removeBackground
+    };
+
+    return backgroundRemovalRuntime;
+  } catch (error) {
+    throw buildBackgroundRemovalRuntimeLoadError(error);
+  }
+};
+
 const isBackgroundRemovalResourceLimitError = (error) => {
   const normalizedDetail = getBackgroundRemovalErrorDetail(error).toLowerCase();
   return BACKGROUND_REMOVAL_RESOURCE_LIMIT_TOKENS.some((token) => normalizedDetail.includes(token));
@@ -110,6 +140,13 @@ const buildBackgroundRemovalError = (error) => {
     return {
       statusCode: 503,
       message: 'O servidor atual não conseguiu iniciar o motor de recorte da imagem. Tente novamente em instantes.'
+    };
+  }
+
+  if (error?.backgroundRemovalRuntimeUnavailable) {
+    return {
+      statusCode: 503,
+      message: BACKGROUND_REMOVAL_RUNTIME_UNAVAILABLE_MESSAGE
     };
   }
 
@@ -165,6 +202,7 @@ const assertValidBackgroundRemovalOutput = (imageBuffer) => {
 const createBackgroundRemovalSource = (file) => pathToFileURL(file.path);
 
 const runBackgroundRemoval = async (file, model = backgroundRemovalModel) => {
+  const { removeBackgroundImage } = loadBackgroundRemovalRuntime();
   const resultBlob = await removeBackgroundImage(createBackgroundRemovalSource(file), getBackgroundRemovalConfig(model));
   return Buffer.from(await resultBlob.arrayBuffer());
 };

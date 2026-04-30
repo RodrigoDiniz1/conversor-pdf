@@ -779,7 +779,7 @@ const runClientSideToolWithFallback = async (tool) => {
   try {
     return await runClientSideTool(tool);
   } catch (error) {
-    if (tool?.id !== REMOVE_BACKGROUND_TOOL_ID) {
+    if (!shouldUseServerFallbackForClientTool(tool)) {
       throw error;
     }
 
@@ -1289,6 +1289,80 @@ const parseFileName = (contentDisposition, fallbackName) => {
 };
 
 const isLoopbackHostname = (hostname) => ['localhost', '127.0.0.1', '::1', '[::1]'].includes(hostname);
+
+const isPrivateIpv4Hostname = (hostname) => {
+  const parts = hostname.split('.').map((value) => Number.parseInt(value, 10));
+
+  if (parts.length !== 4 || parts.some((value) => Number.isNaN(value) || value < 0 || value > 255)) {
+    return false;
+  }
+
+  return (
+    parts[0] === 10
+    || parts[0] === 127
+    || (parts[0] === 169 && parts[1] === 254)
+    || (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31)
+    || (parts[0] === 192 && parts[1] === 168)
+  );
+};
+
+const isLocalNetworkHostname = (hostname = '') => {
+  const normalizedHostname = hostname.trim().toLowerCase();
+
+  if (!normalizedHostname) {
+    return false;
+  }
+
+  if (isLoopbackHostname(normalizedHostname) || normalizedHostname === '0.0.0.0') {
+    return true;
+  }
+
+  if (isPrivateIpv4Hostname(normalizedHostname) || normalizedHostname.endsWith('.local')) {
+    return true;
+  }
+
+  return !normalizedHostname.includes('.') && /^[a-z0-9-]+$/i.test(normalizedHostname);
+};
+
+const isLocalApiFallbackOrigin = (origin) => {
+  if (!origin) {
+    return false;
+  }
+
+  try {
+    const { protocol, hostname } = new URL(origin, window.location.href);
+
+    if (protocol === 'file:') {
+      return true;
+    }
+
+    if (protocol !== 'http:' && protocol !== 'https:') {
+      return false;
+    }
+
+    return isLocalNetworkHostname(hostname);
+  } catch (_error) {
+    return false;
+  }
+};
+
+const shouldUseServerFallbackForClientTool = (tool) => {
+  if (tool?.id !== REMOVE_BACKGROUND_TOOL_ID) {
+    return false;
+  }
+
+  const configuredApiBaseUrl = getConfiguredApiBaseUrl();
+
+  if (configuredApiBaseUrl) {
+    return isLocalApiFallbackOrigin(configuredApiBaseUrl);
+  }
+
+  if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
+    return true;
+  }
+
+  return isLocalNetworkHostname(window.location.hostname);
+};
 
 const buildLocalApiOrigins = () => {
   const localOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
