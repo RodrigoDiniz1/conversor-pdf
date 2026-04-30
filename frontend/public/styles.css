@@ -981,7 +981,8 @@ img {
   transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, color 160ms ease;
 }
 
-.tool-copy-panel .back-button {
+.tool-copy-panel .back-button,
+.state-shell > .back-button {
   justify-self: start;
   display: inline-flex;
   align-items: center;
@@ -995,14 +996,17 @@ img {
   box-shadow: 0 10px 22px rgba(38, 52, 79, 0.08);
 }
 
-.tool-copy-panel .back-button::before {
+.tool-copy-panel .back-button::before,
+.state-shell > .back-button::before {
   content: '\2190';
   font-size: 1rem;
   line-height: 1;
 }
 
 .tool-copy-panel .back-button:hover,
-.tool-copy-panel .back-button:focus-visible {
+.tool-copy-panel .back-button:focus-visible,
+.state-shell > .back-button:hover,
+.state-shell > .back-button:focus-visible {
   background: #ffffff;
   color: #26344f;
   box-shadow: 0 14px 28px rgba(38, 52, 79, 0.12);
@@ -1146,13 +1150,28 @@ img {
 .selection-meta {
   width: 100%;
   display: grid;
-  gap: 10px;
+  gap: 14px;
+}
+
+.selection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
 
 .preview-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
+}
+
+.preview-list.is-sortable {
+  width: min(100%, 860px);
+  margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
 }
 
 .preview-item {
@@ -1165,6 +1184,26 @@ img {
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid var(--line);
   box-shadow: 0 14px 24px rgba(24, 37, 52, 0.05);
+}
+
+.preview-item.is-sortable {
+  grid-template-columns: 52px 56px minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+.preview-order {
+  display: grid;
+  place-items: center;
+  min-width: 52px;
+  height: 52px;
+  padding: 0 8px;
+  border-radius: 18px;
+  background: rgba(64, 103, 191, 0.12);
+  color: #4067bf;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
 }
 
 .preview-thumb,
@@ -1191,16 +1230,54 @@ img {
   display: block;
 }
 
+.preview-meta {
+  min-width: 0;
+}
+
 .preview-meta strong {
   color: var(--ink);
   font-size: 0.94rem;
   font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .preview-meta span {
   margin-top: 4px;
   color: var(--muted);
   font-size: 0.84rem;
+}
+
+.preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.preview-move-button {
+  min-width: 84px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.preview-move-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(64, 103, 191, 0.34);
+  background: rgba(240, 245, 255, 0.96);
+}
+
+.preview-move-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .reset-button {
@@ -1213,6 +1290,13 @@ img {
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+.submit-selection-button {
+  min-height: 44px;
+  padding: 0 18px;
+  min-width: 170px;
+  box-shadow: 0 18px 30px rgba(64, 103, 191, 0.18);
 }
 
 .progress-wrapper {
@@ -1276,6 +1360,25 @@ img {
   background: rgba(173, 107, 21, 0.08);
 }
 
+@media (max-width: 720px) {
+  .preview-item.is-sortable {
+    grid-template-columns: 44px 56px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .preview-actions {
+    display: grid;
+    grid-column: 2 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .preview-move-button {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
 .state-view {
   display: grid;
   align-content: start;
@@ -1314,8 +1417,24 @@ img {
 }
 
 .is-success-shell .state-hero {
-  background: linear-gradient(180deg, rgba(232, 246, 238, 0.98), rgba(255, 255, 255, 0.96));
+  background: rgba(245, 250, 247, 0.98);
   border-color: rgba(31, 138, 97, 0.16);
+  justify-items: center;
+  text-align: center;
+}
+
+.is-success-shell .state-file-pill {
+  width: min(100%, 720px);
+  justify-items: center;
+  text-align: center;
+}
+
+.is-success-shell .state-actions {
+  justify-content: center;
+}
+
+.is-success-shell .primary-action {
+  background: var(--accent-dark);
 }
 
 .is-error-shell .state-hero {

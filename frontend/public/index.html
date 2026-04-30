@@ -88,7 +88,10 @@
 
                 <div id="selection-meta" class="selection-meta is-hidden">
                   <div id="preview-list" class="preview-list"></div>
-                  <button id="clear-button" class="reset-button" type="button">Limpar seleção</button>
+                  <div class="selection-actions">
+                    <button id="clear-button" class="reset-button" type="button">Limpar seleção</button>
+                    <button id="submit-button" class="primary-action submit-selection-button is-hidden" type="button">Juntar PDFs</button>
+                  </div>
                 </div>
 
                 <div id="progress-wrapper" class="progress-wrapper is-hidden" aria-hidden="true">
@@ -122,7 +125,8 @@
               <p id="success-note" class="state-note"></p>
 
               <div class="state-actions">
-                <button id="success-again-button" class="primary-action" type="button">Nova conversão</button>
+                <button id="success-download-button" class="primary-action" type="button">Baixar arquivo</button>
+                <button id="success-again-button" class="secondary-action" type="button">Nova conversão</button>
                 <button id="success-home-button" class="secondary-action" type="button">Ir para a página inicial</button>
               </div>
             </div>

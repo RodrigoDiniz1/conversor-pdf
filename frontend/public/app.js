@@ -90,18 +90,20 @@ const toolCatalog = {
     id: 'merge-pdf',
     title: 'Juntar PDF',
     cardDescription: 'Mescle dois ou mais arquivos PDF em um único documento final.',
-    cardHighlights: ['Une dois ou mais PDFs', 'Mantém a ordem enviada'],
-    detailDescription: 'Envie dois ou mais PDFs e receba um arquivo final unificado em uma tela dedicada à montagem do documento.',
-    note: 'A junção respeita a ordem em que os arquivos forem enviados nesta etapa.',
+    cardHighlights: ['Une dois ou mais PDFs', 'Permite reordenar antes de juntar'],
+    detailDescription: 'Envie dois ou mais PDFs, ajuste a sequência na lista e receba um arquivo final unificado em uma tela dedicada à montagem do documento.',
+    note: 'A junção respeita a ordem mostrada na lista, que você pode reorganizar antes de enviar.',
     section: 'organize',
     kicker: 'Organizar PDF',
-    helper: 'Envie dois ou mais PDFs para juntar tudo em um único arquivo final.',
+    helper: 'Envie dois ou mais PDFs, reorganize a sequência e gere um arquivo final único.',
     available: true,
     status: 'Disponível agora',
     endpoint: '/upload/merge-pdf',
     fieldName: 'files',
     accept: '.pdf,application/pdf',
     allowMultiple: true,
+    manualSubmit: true,
+    submitLabel: 'Juntar PDFs',
     chooseLabel: 'Selecionar arquivos PDF',
     idleSubtitle: 'Ou solte dois ou mais PDFs aqui',
     lockedSubtitle: 'Esta ferramenta ainda não está disponível',
@@ -258,7 +260,10 @@ const SERVER_UNAVAILABLE_HINTS = [
 ];
 const DEFAULT_ACTIVE_TOOL_ID = toolSections.active[0];
 const REMOVE_BACKGROUND_TOOL_ID = 'remove-background';
-const BROWSER_BACKGROUND_REMOVAL_MODULE_URL = new URL('./vendor/background-removal/dist/index.mjs', window.location.href).href;
+const MERGE_PDF_TOOL_ID = 'merge-pdf';
+const MAX_FILE_SIZE_BYTES = 1024 * 1024 * 1024;
+const MAX_FILE_SIZE_LABEL = '1GB';
+const BROWSER_BACKGROUND_REMOVAL_WORKER_URL = new URL('./background-removal-worker.js', window.location.href).href;
 const BROWSER_BACKGROUND_REMOVAL_PRIMARY_MODEL = 'isnet_fp16';
 const BROWSER_BACKGROUND_REMOVAL_FALLBACK_MODEL = 'isnet_quint8';
 const BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR = 'Não foi possível concluir o recorte neste navegador.';
@@ -276,11 +281,13 @@ const state = {
 
 const LOCAL_API_PORT = '3000';
 let preferredApiBaseUrl = null;
-let browserBackgroundRemovalModulePromise = null;
+let browserBackgroundRemovalWorker = null;
+let browserBackgroundRemovalWorkerRequestId = 0;
 let browserBackgroundRemovalModel = BROWSER_BACKGROUND_REMOVAL_PRIMARY_MODEL;
 let browserBackgroundRemovalPreloadPromise = null;
 let browserBackgroundRemovalPreloadModel = null;
 let browserBackgroundRemovalPreloadedModel = null;
+const browserBackgroundRemovalWorkerPendingRequests = new Map();
 
 const buildUniqueOrigins = (origins) => Array.from(new Set(origins.filter(Boolean)));
 
@@ -331,6 +338,7 @@ const dropzoneSubtitle = document.getElementById('dropzone-subtitle');
 const selectionMeta = document.getElementById('selection-meta');
 const previewList = document.getElementById('preview-list');
 const clearButton = document.getElementById('clear-button');
+const submitButton = document.getElementById('submit-button');
 const progressWrapper = document.getElementById('progress-wrapper');
 const progressFill = document.getElementById('progress-fill');
 const progressLabel = document.getElementById('progress-label');
@@ -340,6 +348,7 @@ const successTitle = document.getElementById('success-title');
 const successDescription = document.getElementById('success-description');
 const successFileName = document.getElementById('success-file-name');
 const successNote = document.getElementById('success-note');
+const successDownloadButton = document.getElementById('success-download-button');
 const successAgainButton = document.getElementById('success-again-button');
 const successHomeButton = document.getElementById('success-home-button');
 const errorBackButton = document.getElementById('error-back-button');
@@ -374,10 +383,33 @@ const getCurrentTool = () => toolCatalog[state.activeToolId] || null;
 const getCurrentToolExperience = () => toolExperienceCatalog[state.activeToolId] || {};
 const toolValidation = window.ToolValidation;
 const isClientSideTool = (tool) => tool?.id === REMOVE_BACKGROUND_TOOL_ID;
+const isManualSubmitTool = (tool) => Boolean(tool?.manualSubmit);
 
 if (!toolValidation?.getValidatedFilesForTool) {
   throw new Error('Tool validation runtime is not available.');
 }
+
+const getManualSubmitReadyMessage = (tool) => {
+  if (!tool) {
+    return '';
+  }
+
+  if (tool.id === MERGE_PDF_TOOL_ID) {
+    return 'Organize a sequência dos PDFs e clique em Juntar PDFs.';
+  }
+
+  return tool.readyMessage(state.files.length);
+};
+
+const assertFilesWithinSizeLimit = (files) => {
+  const oversizedFile = files.find((file) => file.size > MAX_FILE_SIZE_BYTES);
+
+  if (!oversizedFile) {
+    return files;
+  }
+
+  throw new Error(`O limite máximo por arquivo é de ${MAX_FILE_SIZE_LABEL}. ${oversizedFile.name} tem ${formatSize(oversizedFile.size)}.`);
+};
 
 const isServerUnavailableError = (message = '') => (
   includesAnyMessage(message, [
@@ -408,7 +440,29 @@ const formatSize = (bytes) => {
     return `${(bytes / 1024).toFixed(1)} KB`;
   }
 
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < MAX_FILE_SIZE_BYTES) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  return `${(bytes / MAX_FILE_SIZE_BYTES).toFixed(2)} GB`;
+};
+
+const getToolDropzoneSubtitle = (tool) => {
+  if (state.isBusy) {
+    return 'Seus arquivos estão sendo processados';
+  }
+
+  if (!tool.available) {
+    return tool.lockedSubtitle;
+  }
+
+  if (state.files.length > 0) {
+    return isManualSubmitTool(tool)
+      ? getManualSubmitReadyMessage(tool)
+      : tool.readyMessage(state.files.length);
+  }
+
+  return tool.idleSubtitle;
 };
 
 const buildClientSidePngName = (fileName = 'imagem') => {
@@ -523,36 +577,91 @@ const setBackgroundRemovalPreloadStatus = (message = '') => {
   setStatus(message);
 };
 
-const loadBackgroundRemovalBrowserModule = async () => {
-  browserBackgroundRemovalModulePromise = browserBackgroundRemovalModulePromise || import(BROWSER_BACKGROUND_REMOVAL_MODULE_URL)
-    .then((module) => ({
-      preload: module.preload,
-      removeBackground: module.removeBackground || module.default
-    }));
-
-  return browserBackgroundRemovalModulePromise;
+const getBackgroundRemovalWorkerError = (error) => {
+  const message = String(error?.message || error || '').trim();
+  return new Error(message || BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR);
 };
 
-const createBackgroundRemovalBaseConfig = (model = browserBackgroundRemovalModel) => ({
-  debug: false,
-  device: 'cpu',
-  model,
-  proxyToWorker: false,
-  output: {
-    format: 'image/png',
-    quality: 1,
-    type: 'foreground'
+const resetBackgroundRemovalWorker = () => {
+  if (browserBackgroundRemovalWorker) {
+    browserBackgroundRemovalWorker.terminate();
+    browserBackgroundRemovalWorker = null;
+  }
+
+  browserBackgroundRemovalWorkerPendingRequests.clear();
+};
+
+const handleBackgroundRemovalWorkerFailure = (error) => {
+  const workerError = getBackgroundRemovalWorkerError(error);
+
+  browserBackgroundRemovalWorkerPendingRequests.forEach(({ reject }) => reject(workerError));
+  resetBackgroundRemovalWorker();
+};
+
+const ensureBackgroundRemovalWorker = () => {
+  if (browserBackgroundRemovalWorker) {
+    return browserBackgroundRemovalWorker;
+  }
+
+  const worker = new Worker(BROWSER_BACKGROUND_REMOVAL_WORKER_URL, { type: 'module' });
+
+  worker.addEventListener('message', (event) => {
+    const { type, requestId, result, message, key, current, total } = event.data || {};
+    const pendingRequest = browserBackgroundRemovalWorkerPendingRequests.get(requestId);
+
+    if (!pendingRequest) {
+      return;
+    }
+
+    if (type === 'progress') {
+      pendingRequest.onProgress?.(key, current, total);
+      return;
+    }
+
+    browserBackgroundRemovalWorkerPendingRequests.delete(requestId);
+
+    if (type === 'completed') {
+      pendingRequest.resolve(result || {});
+      return;
+    }
+
+    pendingRequest.reject(getBackgroundRemovalWorkerError(message));
+  });
+
+  worker.addEventListener('error', (event) => {
+    handleBackgroundRemovalWorkerFailure(event);
+  });
+
+  worker.addEventListener('messageerror', (event) => {
+    handleBackgroundRemovalWorkerFailure(event);
+  });
+
+  browserBackgroundRemovalWorker = worker;
+  return worker;
+};
+
+const requestBackgroundRemovalWorker = ({ type, model, file, onProgress }) => new Promise((resolve, reject) => {
+  const worker = ensureBackgroundRemovalWorker();
+  const requestId = ++browserBackgroundRemovalWorkerRequestId;
+
+  browserBackgroundRemovalWorkerPendingRequests.set(requestId, {
+    resolve,
+    reject,
+    onProgress
+  });
+
+  try {
+    worker.postMessage({
+      type,
+      requestId,
+      model,
+      file
+    });
+  } catch (error) {
+    browserBackgroundRemovalWorkerPendingRequests.delete(requestId);
+    reject(getBackgroundRemovalWorkerError(error));
   }
 });
-
-const createBackgroundRemovalClientConfig = (model = browserBackgroundRemovalModel) => ({
-  ...createBackgroundRemovalBaseConfig(model),
-  progress: updateBackgroundRemovalProgress
-});
-
-const createBackgroundRemovalPreloadConfig = (model = browserBackgroundRemovalModel) => (
-  createBackgroundRemovalBaseConfig(model)
-);
 
 const preloadBackgroundRemovalResources = async (model = browserBackgroundRemovalModel) => {
   if (browserBackgroundRemovalPreloadedModel === model) {
@@ -565,14 +674,8 @@ const preloadBackgroundRemovalResources = async (model = browserBackgroundRemova
 
   browserBackgroundRemovalPreloadModel = model;
   browserBackgroundRemovalPreloadPromise = (async () => {
-    const { preload } = await loadBackgroundRemovalBrowserModule();
-
-    if (typeof preload !== 'function') {
-      return;
-    }
-
     setBackgroundRemovalPreloadStatus('Preparando a IA de recorte no seu navegador...');
-    await preload(createBackgroundRemovalPreloadConfig(model));
+    await requestBackgroundRemovalWorker({ type: 'preload', model });
     browserBackgroundRemovalPreloadedModel = model;
   })()
     .catch((error) => {
@@ -597,8 +700,14 @@ const preloadBackgroundRemovalResources = async (model = browserBackgroundRemova
 
 const runBackgroundRemovalInBrowser = async (file, model = browserBackgroundRemovalModel) => {
   await preloadBackgroundRemovalResources(model).catch(() => undefined);
-  const { removeBackground } = await loadBackgroundRemovalBrowserModule();
-  return removeBackground(file, createBackgroundRemovalClientConfig(model));
+  const result = await requestBackgroundRemovalWorker({
+    type: 'remove',
+    model,
+    file,
+    onProgress: updateBackgroundRemovalProgress
+  });
+
+  return result.blob;
 };
 
 const runClientSideTool = async (tool) => {
@@ -847,12 +956,15 @@ const syncToolView = () => {
   fileInput.multiple = Boolean(tool.allowMultiple);
   fileInput.disabled = state.isBusy || !tool.available;
   clearButton.disabled = state.isBusy || !tool.available;
+  submitButton.disabled = state.isBusy || !tool.available || state.files.length === 0;
+  submitButton.textContent = state.isBusy ? 'PROCESSANDO...' : (tool.submitLabel || 'Iniciar conversão');
+  submitButton.classList.toggle('is-hidden', !isManualSubmitTool(tool) || state.files.length === 0);
   dropzone.classList.toggle('is-busy', state.isBusy);
   dropzone.classList.toggle('is-locked', !tool.available);
   dropzone.setAttribute('aria-disabled', String(!tool.available));
   dropzone.setAttribute('aria-busy', String(state.isBusy));
   chooseButtonText.textContent = state.isBusy ? 'PROCESSANDO...' : tool.chooseLabel;
-  dropzoneSubtitle.textContent = state.isBusy ? 'Seus arquivos estão sendo processados' : (tool.available ? tool.idleSubtitle : tool.lockedSubtitle);
+  dropzoneSubtitle.textContent = getToolDropzoneSubtitle(tool);
 };
 
 const syncSuccessView = () => {
@@ -868,6 +980,8 @@ const syncSuccessView = () => {
   successFileName.textContent = result.fileName || tool.defaultDownloadName;
   successNote.textContent = result.warningMessage || '';
   successNote.classList.toggle('is-hidden', !successNote.textContent);
+  successDownloadButton.disabled = !result.downloadUrl;
+  successDownloadButton.classList.toggle('is-hidden', !result.downloadUrl);
 };
 
 const syncErrorView = () => {
@@ -905,9 +1019,23 @@ const showToolView = () => {
   }
 };
 
+const clearLastResult = () => {
+  if (state.lastResult?.downloadUrl) {
+    URL.revokeObjectURL(state.lastResult.downloadUrl);
+  }
+
+  state.lastResult = null;
+};
+
 const showSuccessView = (result) => {
+  clearLastResult();
   state.lastResult = result;
-  resetSelection({ keepStatus: true });
+  state.lastError = null;
+  clearSelectionState();
+  clearPreviews();
+  selectionMeta.classList.add('is-hidden');
+  resetProgress();
+  dropzone.classList.remove('is-dragging');
   setStatus('');
   state.view = 'success';
   syncSuccessView();
@@ -924,7 +1052,7 @@ const showErrorView = (message) => {
   };
 
   if (tool) {
-    dropzoneSubtitle.textContent = tool.readyMessage(state.files.length);
+    dropzoneSubtitle.textContent = getToolDropzoneSubtitle(tool);
   }
 
   setStatus('');
@@ -938,9 +1066,13 @@ const setBusy = (isBusy) => {
   syncToolView();
 };
 
-const resetSelection = ({ keepStatus = false } = {}) => {
+const clearSelectionState = () => {
   state.files = [];
   fileInput.value = '';
+};
+
+const resetSelection = ({ keepStatus = false } = {}) => {
+  clearSelectionState();
   clearPreviews();
   selectionMeta.classList.add('is-hidden');
   resetProgress();
@@ -955,7 +1087,7 @@ const resetSelection = ({ keepStatus = false } = {}) => {
 const goHome = () => {
   state.view = 'home';
   state.activeToolId = null;
-  state.lastResult = null;
+  clearLastResult();
   state.lastError = null;
   resetSelection();
   syncView();
@@ -963,7 +1095,7 @@ const goHome = () => {
 
 const openTool = (toolId) => {
   state.activeToolId = toolId;
-  state.lastResult = null;
+  clearLastResult();
   state.lastError = null;
   resetSelection();
 
@@ -982,10 +1114,20 @@ const openTool = (toolId) => {
   showToolView();
 };
 
-const renderPreview = (file) => {
+const renderPreview = (file, index) => {
   const tool = getCurrentTool();
   const item = document.createElement('article');
   item.className = 'preview-item';
+  const isSequenceEditable = isManualSubmitTool(tool);
+
+  if (isSequenceEditable) {
+    item.classList.add('is-sortable');
+
+    const orderBadge = document.createElement('span');
+    orderBadge.className = 'preview-order';
+    orderBadge.textContent = String(index + 1).padStart(2, '0');
+    item.appendChild(orderBadge);
+  }
 
   const visual = document.createElement('img');
   visual.alt = '';
@@ -1003,27 +1145,80 @@ const renderPreview = (file) => {
 
   const meta = document.createElement('div');
   meta.className = 'preview-meta';
-  meta.innerHTML = `<strong>${file.name}</strong><span>${formatSize(file.size)}</span>`;
+
+  const fileName = document.createElement('strong');
+  fileName.textContent = file.name;
+
+  const fileSize = document.createElement('span');
+  fileSize.textContent = formatSize(file.size);
+
+  meta.append(fileName, fileSize);
   item.appendChild(meta);
+
+  if (isSequenceEditable) {
+    const actions = document.createElement('div');
+    actions.className = 'preview-actions';
+
+    const moveUpButton = document.createElement('button');
+    moveUpButton.type = 'button';
+    moveUpButton.className = 'preview-move-button';
+    moveUpButton.dataset.move = 'up';
+    moveUpButton.dataset.index = String(index);
+    moveUpButton.textContent = 'Subir';
+    moveUpButton.disabled = index === 0;
+    moveUpButton.setAttribute('aria-label', `Mover ${file.name} para cima`);
+
+    const moveDownButton = document.createElement('button');
+    moveDownButton.type = 'button';
+    moveDownButton.className = 'preview-move-button';
+    moveDownButton.dataset.move = 'down';
+    moveDownButton.dataset.index = String(index);
+    moveDownButton.textContent = 'Descer';
+    moveDownButton.disabled = index === state.files.length - 1;
+    moveDownButton.setAttribute('aria-label', `Mover ${file.name} para baixo`);
+
+    actions.append(moveUpButton, moveDownButton);
+    item.appendChild(actions);
+  }
 
   previewList.appendChild(item);
 };
 
 const renderPreviews = () => {
   clearPreviews();
+  previewList.classList.toggle('is-sortable', isManualSubmitTool(getCurrentTool()));
   state.files.forEach(renderPreview);
   selectionMeta.classList.toggle('is-hidden', state.files.length === 0);
 };
 
-const triggerDownload = (blob, fileName) => {
-  const objectUrl = URL.createObjectURL(blob);
+const moveSelectedFile = (fromIndex, toIndex) => {
+  if (
+    state.isBusy
+    || fromIndex === toIndex
+    || fromIndex < 0
+    || toIndex < 0
+    || fromIndex >= state.files.length
+    || toIndex >= state.files.length
+  ) {
+    return;
+  }
+
+  const nextFiles = [...state.files];
+  const [file] = nextFiles.splice(fromIndex, 1);
+  nextFiles.splice(toIndex, 0, file);
+  state.files = nextFiles;
+  syncToolView();
+  renderPreviews();
+  setStatus('');
+};
+
+const triggerDownload = (downloadUrl, fileName) => {
   const anchor = document.createElement('a');
-  anchor.href = objectUrl;
+  anchor.href = downloadUrl;
   anchor.download = fileName;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(objectUrl);
 };
 
 const parseFileName = (contentDisposition, fallbackName) => {
@@ -1217,8 +1412,9 @@ const startConversion = async () => {
   try {
     const { blob, fileName, warningMessage } = await processCurrentTool(tool);
     updateProgress(100);
-    triggerDownload(blob, fileName);
-    showSuccessView({ fileName, warningMessage });
+    const downloadUrl = URL.createObjectURL(blob);
+    triggerDownload(downloadUrl, fileName);
+    showSuccessView({ fileName, warningMessage, downloadUrl });
   } catch (error) {
     resetProgress();
 
@@ -1226,7 +1422,7 @@ const startConversion = async () => {
       showErrorView(error.message);
     } else {
       setStatus(error.message, 'error');
-      dropzoneSubtitle.textContent = tool.readyMessage(state.files.length);
+      dropzoneSubtitle.textContent = getToolDropzoneSubtitle(tool);
     }
   } finally {
     setBusy(false);
@@ -1246,12 +1442,16 @@ const handleFiles = async (incomingFiles) => {
       return;
     }
 
-    state.files = getValidatedFilesForCurrentTool(files);
+    state.files = assertFilesWithinSizeLimit(getValidatedFilesForCurrentTool(files));
+    syncToolView();
     renderPreviews();
 
     const tool = getCurrentTool();
-    dropzoneSubtitle.textContent = tool.receivedMessage(state.files.length);
-    setStatus(tool.readyMessage(state.files.length));
+    setStatus(isManualSubmitTool(tool) ? '' : tool.readyMessage(state.files.length));
+
+    if (isManualSubmitTool(tool)) {
+      return;
+    }
 
     await startConversion();
   } catch (error) {
@@ -1279,8 +1479,18 @@ brandHomeButton.addEventListener('click', goHome);
 backHomeButton.addEventListener('click', goHome);
 successBackButton.addEventListener('click', goHome);
 successHomeButton.addEventListener('click', goHome);
+successDownloadButton.addEventListener('click', () => {
+  const tool = getCurrentTool();
+  const downloadUrl = state.lastResult?.downloadUrl;
+
+  if (!downloadUrl) {
+    return;
+  }
+
+  triggerDownload(downloadUrl, state.lastResult?.fileName || tool?.defaultDownloadName || 'arquivo-gerado');
+});
 successAgainButton.addEventListener('click', () => {
-  state.lastResult = null;
+  clearLastResult();
   resetSelection();
   showToolView();
 });
@@ -1367,4 +1577,21 @@ clearButton.addEventListener('click', () => {
   if (!state.isBusy) {
     resetSelection();
   }
+});
+
+submitButton.addEventListener('click', async () => {
+  await startConversion();
+});
+
+previewList.addEventListener('click', (event) => {
+  const moveButton = event.target.closest('[data-move]');
+
+  if (!moveButton) {
+    return;
+  }
+
+  const currentIndex = Number(moveButton.dataset.index);
+  const targetIndex = moveButton.dataset.move === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+  moveSelectedFile(currentIndex, targetIndex);
 });

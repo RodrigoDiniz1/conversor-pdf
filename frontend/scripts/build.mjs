@@ -12,6 +12,7 @@ const distVendorDir = path.join(distDir, 'vendor');
 const backgroundRemovalPackageDir = path.join(nodeModulesDir, '@imgly', 'background-removal');
 const onnxruntimeWebDistDir = path.join(nodeModulesDir, 'onnxruntime-web', 'dist');
 const indexTemplatePath = path.join(publicDir, 'index.html');
+const backgroundRemovalWorkerPath = path.join(publicDir, 'background-removal-worker.js');
 
 const usedImageAssets = [
   'pdf-svgrepo-com.svg',
@@ -68,6 +69,10 @@ await build({
 
 writeFileSync(path.join(distDir, 'index.html'), createStaticIndexHtml(), 'utf8');
 rewriteDistAssetPaths('app.js');
+
+if (existsSync(backgroundRemovalWorkerPath)) {
+  cpSync(backgroundRemovalWorkerPath, path.join(distDir, 'background-removal-worker.js'));
+}
 
 if (existsSync(imagesDir)) {
   mkdirSync(distImagesDir, { recursive: true });

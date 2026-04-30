@@ -4,7 +4,7 @@ const path = require('path');
 const { ensureDirectory, createJobId } = require('../utils/fileUtils');
 
 const uploadDir = path.join(__dirname, '..', '..', 'tmp', 'uploads');
-const maxFileSizeMb = 100;
+const maxFileSizeMb = 1024;
 const maxFileSize = maxFileSizeMb * 1024 * 1024;
 const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 const imageMimeTypes = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
@@ -82,7 +82,7 @@ const toUploadError = (error) => {
 
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
-      return { statusCode: 400, message: `O limite máximo por arquivo é de ${maxFileSizeMb}MB.` };
+      return { statusCode: 400, message: 'O limite máximo por arquivo é de 1GB.' };
     }
 
     return { statusCode: 400, message: error.message };
