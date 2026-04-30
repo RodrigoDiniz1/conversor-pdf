@@ -1347,21 +1347,7 @@ const isLocalApiFallbackOrigin = (origin) => {
 };
 
 const shouldUseServerFallbackForClientTool = (tool) => {
-  if (tool?.id !== REMOVE_BACKGROUND_TOOL_ID) {
-    return false;
-  }
-
-  const configuredApiBaseUrl = getConfiguredApiBaseUrl();
-
-  if (configuredApiBaseUrl) {
-    return isLocalApiFallbackOrigin(configuredApiBaseUrl);
-  }
-
-  if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
-    return true;
-  }
-
-  return isLocalNetworkHostname(window.location.hostname);
+  return tool?.id === REMOVE_BACKGROUND_TOOL_ID;
 };
 
 const buildLocalApiOrigins = () => {
