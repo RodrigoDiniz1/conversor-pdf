@@ -15,16 +15,18 @@ const {
 } = require('../../utils/fileUtils');
 const {
   assertValidJpgFile,
-  assertValidPdfFile
+  assertValidPdfFile,
+  assertValidPngFile
 } = require('./shared/fileValidation');
 
 const outputRoot = path.join(__dirname, '..', '..', '..', 'tmp', 'output');
 const PDF_RENDER_SCALE = 3;
+const PDF_RENDER_MAX_PIXELS = 24_000_000;
+const PDF_RENDER_MAX_DIMENSION = 8192;
 const JPEG_ENCODING = 'jpeg';
+const PNG_ENCODING = 'png';
 const JPEG_ENCODING_QUALITY = 100;
-const JPG_TO_PDF_PADDING = 24;
-const DEFAULT_PDF_PAGE_WIDTH = 595.28;
-const DEFAULT_PDF_PAGE_HEIGHT = 841.89;
+const IMAGE_TO_PDF_PADDING = 0;
 const FONT_FILE_EXTENSIONS = new Set(['.ttf', '.otf', '.ttc', '.otc']);
 const PDF_LOADING_OPTIONS = {
   cMapPacked: true,
@@ -34,6 +36,17 @@ const PDF_LOADING_OPTIONS = {
   isEvalSupported: false,
   verbosity: 0
 };
+const PDF_IMAGE_EXPORTS = Object.freeze({
+  jpg: {
+    extension: 'jpg',
+    encoding: JPEG_ENCODING,
+    encodingQuality: JPEG_ENCODING_QUALITY
+  },
+  png: {
+    extension: 'png',
+    encoding: PNG_ENCODING
+  }
+});
 const PDF_RENDER_RUNTIME_UNAVAILABLE_MESSAGE = 'A conversão de PDF em imagens não está disponível neste servidor no momento.';
 
 ensureDirectory(outputRoot);
@@ -452,6 +465,20 @@ const buildPdfRenderError = (error) => {
     };
   }
 
+  if (error?.name === 'PasswordException') {
+    return {
+      statusCode: 400,
+      message: 'Este PDF esta protegido por senha. Remova a senha do arquivo e tente converter novamente.'
+    };
+  }
+
+  if (['InvalidPDFException', 'MissingPDFException'].includes(error?.name)) {
+    return {
+      statusCode: 400,
+      message: 'O arquivo enviado nao parece ser um PDF valido ou esta corrompido.'
+    };
+  }
+
   const baseMessage = 'Falha ao converter o PDF em imagens.';
   const detail = String(error.message || error);
 
@@ -475,7 +502,7 @@ const buildPdfMergeError = (error) => {
   };
 };
 
-const createPdfToZipPaths = (file) => {
+const createPdfToImageExportPaths = (file) => {
   const jobId = createJobId();
   const jobDir = path.join(outputRoot, jobId);
   const imageDir = path.join(jobDir, 'images');
@@ -502,47 +529,103 @@ const createPdfLoadingTask = (pdfjsLib, pdfData) => {
   });
 };
 
-const createPdfPageImagePath = (imageDir, baseName, pageNumber) => (
-  path.join(imageDir, `${baseName}-pagina-${pageNumber}.jpg`)
+const createPdfPageImagePath = (imageDir, baseName, pageNumber, extension) => (
+  path.join(imageDir, `${baseName}-pagina-${pageNumber}.${extension}`)
 );
 
-const renderPdfPageAsJpg = async (page, imagePath, canvasFactory) => {
-  const viewport = page.getViewport({ scale: PDF_RENDER_SCALE });
-  const canvasAndContext = canvasFactory.create(viewport.width, viewport.height);
+const getConstrainedRenderScale = (page) => {
+  const unitViewport = page.getViewport({ scale: 1 });
+  const pageWidth = Math.max(unitViewport.width, 1);
+  const pageHeight = Math.max(unitViewport.height, 1);
+  const dimensionScale = Math.min(
+    PDF_RENDER_SCALE,
+    PDF_RENDER_MAX_DIMENSION / pageWidth,
+    PDF_RENDER_MAX_DIMENSION / pageHeight
+  );
+  const pixelScale = Math.sqrt(PDF_RENDER_MAX_PIXELS / (pageWidth * pageHeight));
 
-  canvasAndContext.context.fillStyle = '#ffffff';
-  canvasAndContext.context.fillRect(0, 0, canvasAndContext.canvas.width, canvasAndContext.canvas.height);
-  canvasAndContext.context.imageSmoothingEnabled = true;
-  canvasAndContext.context.imageSmoothingQuality = 'high';
-
-  const renderTask = page.render({
-    canvasContext: canvasAndContext.context,
-    viewport
-  });
-
-  await renderTask.promise;
-
-  const imageBuffer = await canvasAndContext.canvas.encode(JPEG_ENCODING, JPEG_ENCODING_QUALITY);
-  await fs.writeFile(imagePath, imageBuffer);
-
-  page.cleanup();
-  canvasFactory.destroy(canvasAndContext);
+  return Math.max(Math.min(dimensionScale, pixelScale), 0.1);
 };
 
-const renderPdfDocumentPages = async (pdfDocument, imageDir, baseName) => {
-  const canvasFactory = pdfDocument.canvasFactory;
+const encodeCanvasImage = (canvas, imageExport) => {
+  if (imageExport.encodingQuality === undefined) {
+    return canvas.encode(imageExport.encoding);
+  }
 
-  for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
-    const page = await pdfDocument.getPage(pageNumber);
-    const imagePath = createPdfPageImagePath(imageDir, baseName, pageNumber);
+  return canvas.encode(imageExport.encoding, imageExport.encodingQuality);
+};
 
-    await renderPdfPageAsJpg(page, imagePath, canvasFactory);
+const renderPdfPageAsImage = async (page, imagePath, canvasFactory, imageExport) => {
+  const viewport = page.getViewport({ scale: getConstrainedRenderScale(page) });
+  let canvasAndContext;
+
+  try {
+    canvasAndContext = canvasFactory.create(viewport.width, viewport.height);
+
+    canvasAndContext.context.fillStyle = '#ffffff';
+    canvasAndContext.context.fillRect(0, 0, canvasAndContext.canvas.width, canvasAndContext.canvas.height);
+    canvasAndContext.context.imageSmoothingEnabled = true;
+    canvasAndContext.context.imageSmoothingQuality = 'high';
+
+    const renderTask = page.render({
+      canvasContext: canvasAndContext.context,
+      viewport
+    });
+
+    await renderTask.promise;
+
+    const imageBuffer = await encodeCanvasImage(canvasAndContext.canvas, imageExport);
+    await fs.writeFile(imagePath, imageBuffer);
+  } finally {
+    page.cleanup();
+
+    if (canvasAndContext) {
+      canvasFactory.destroy(canvasAndContext);
+    }
   }
 };
 
-const convertPdfToZip = async (file) => {
-  const { jobDir, imageDir, baseName, zipPath } = createPdfToZipPaths(file);
+const renderPdfDocumentPages = async (pdfDocument, imageDir, baseName, imageExport) => {
+  const canvasFactory = pdfDocument.canvasFactory;
+  const imagePaths = [];
+
+  for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+    const page = await pdfDocument.getPage(pageNumber);
+    const imagePath = createPdfPageImagePath(imageDir, baseName, pageNumber, imageExport.extension);
+
+    await renderPdfPageAsImage(page, imagePath, canvasFactory, imageExport);
+    imagePaths.push(imagePath);
+  }
+
+  return imagePaths;
+};
+
+const buildPdfImageExport = async ({ imagePaths, imageDir, baseName, zipPath, imageExport }) => {
+  if (imagePaths.length === 1) {
+    return {
+      outputPath: imagePaths[0],
+      downloadName: createFriendlyName(baseName, imageExport.extension),
+      outputType: imageExport.extension
+    };
+  }
+
+  await createZipFromDirectory(imageDir, zipPath);
+
+  return {
+    outputPath: zipPath,
+    zipPath,
+    downloadName: createFriendlyName(baseName, 'zip'),
+    outputType: 'zip'
+  };
+};
+
+const getPdfImageExport = (extension) => PDF_IMAGE_EXPORTS[extension] || PDF_IMAGE_EXPORTS.jpg;
+
+const convertPdfToImages = async (file, extension = 'jpg') => {
+  const imageExport = getPdfImageExport(extension);
+  const { jobDir, imageDir, baseName, zipPath } = createPdfToImageExportPaths(file);
   const fontDiagnostics = createFontDiagnostics();
+  let imagePaths = [];
 
   await assertValidPdfFile(file.path);
 
@@ -556,21 +639,36 @@ const convertPdfToZip = async (file) => {
       const loadingTask = createPdfLoadingTask(pdfjsLib, pdfData);
       const pdfDocument = await loadingTask.promise;
 
-      await renderPdfDocumentPages(pdfDocument, imageDir, baseName);
+      try {
+        imagePaths = await renderPdfDocumentPages(pdfDocument, imageDir, baseName, imageExport);
+      } finally {
+        await pdfDocument.destroy();
+      }
     });
-
-    await createZipFromDirectory(imageDir, zipPath);
   } catch (error) {
     throw buildPdfRenderError(error);
   }
 
-  return {
+  const exportResult = await buildPdfImageExport({
+    imagePaths,
+    imageDir,
+    baseName,
     zipPath,
+    imageExport
+  });
+
+  return {
+    ...exportResult,
     jobDir,
-    downloadName: createFriendlyName(baseName, 'zip'),
     warningMessage: buildFontWarningMessage(fontDiagnostics)
   };
 };
+
+const convertPdfToJpg = (file) => convertPdfToImages(file, 'jpg');
+
+const convertPdfToZip = (file) => convertPdfToJpg(file);
+
+const convertPdfToPng = (file) => convertPdfToImages(file, 'png');
 
 const getImageDimensions = (image) => {
   const { width, height } = image.scale(1);
@@ -598,8 +696,8 @@ const createPdfOutputTarget = (files, multipleBaseName = 'arquivos') => {
 };
 
 const createPdfPageSize = (imageWidth, imageHeight, padding) => ([
-  Math.max(imageWidth + padding * 2, DEFAULT_PDF_PAGE_WIDTH),
-  Math.max(imageHeight + padding * 2, DEFAULT_PDF_PAGE_HEIGHT)
+  imageWidth + padding * 2,
+  imageHeight + padding * 2
 ]);
 
 const drawCenteredImage = (page, image, imageWidth, imageHeight, padding) => {
@@ -614,22 +712,26 @@ const drawCenteredImage = (page, image, imageWidth, imageHeight, padding) => {
   });
 };
 
-const appendJpgPage = async (pdfDoc, file) => {
+const appendImagePage = async (pdfDoc, file, embedImage) => {
   const imageBytes = await fs.readFile(file.path);
-  const image = await pdfDoc.embedJpg(imageBytes);
+  const image = await embedImage(pdfDoc, imageBytes);
   const { width: imageWidth, height: imageHeight } = getImageDimensions(image);
-  const page = pdfDoc.addPage(createPdfPageSize(imageWidth, imageHeight, JPG_TO_PDF_PADDING));
+  const page = pdfDoc.addPage(createPdfPageSize(imageWidth, imageHeight, IMAGE_TO_PDF_PADDING));
 
-  drawCenteredImage(page, image, imageWidth, imageHeight, JPG_TO_PDF_PADDING);
+  drawCenteredImage(page, image, imageWidth, imageHeight, IMAGE_TO_PDF_PADDING);
 };
 
-const convertJpgsToPdf = async (files) => {
+const convertImagesToPdf = async (files, {
+  assertValidFile,
+  embedImage,
+  multipleBaseName
+}) => {
   const pdfDoc = await PDFDocument.create();
-  const { outputName, pdfPath } = createPdfOutputTarget(files, 'imagens');
+  const { outputName, pdfPath } = createPdfOutputTarget(files, multipleBaseName);
 
   for (const file of files) {
-    await assertValidJpgFile(file.path);
-    await appendJpgPage(pdfDoc, file);
+    await assertValidFile(file.path);
+    await appendImagePage(pdfDoc, file, embedImage);
   }
 
   const pdfBytes = await pdfDoc.save();
@@ -640,6 +742,18 @@ const convertJpgsToPdf = async (files) => {
     downloadName: createFriendlyName(outputName, 'pdf')
   };
 };
+
+const convertJpgsToPdf = (files) => convertImagesToPdf(files, {
+  assertValidFile: assertValidJpgFile,
+  embedImage: (pdfDoc, imageBytes) => pdfDoc.embedJpg(imageBytes),
+  multipleBaseName: 'imagens'
+});
+
+const convertPngsToPdf = (files) => convertImagesToPdf(files, {
+  assertValidFile: assertValidPngFile,
+  embedImage: (pdfDoc, imageBytes) => pdfDoc.embedPng(imageBytes),
+  multipleBaseName: 'pngs'
+});
 
 const appendPdfFilePages = async (targetPdfDoc, file) => {
   await assertValidPdfFile(file.path);
@@ -712,6 +826,9 @@ const splitPdfToZip = async (file) => {
 
 module.exports = {
   convertJpgsToPdf,
+  convertPngsToPdf,
+  convertPdfToPng,
+  convertPdfToJpg,
   convertPdfToZip,
   mergePdfs,
   splitPdfToZip

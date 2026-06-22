@@ -1,3 +1,4 @@
+const fs = require('node:fs');
 const conversionService = require('../services/conversionService');
 const { removeFiles, removePath } = require('../utils/fileUtils');
 
@@ -16,29 +17,46 @@ const runCleanupSafely = async (cleanup) => {
 };
 
 const sendDownload = (req, res, next, filePath, downloadName, cleanup, responseHeaders = {}) => {
+  let cleanupWasQueued = false;
+
+  const queueCleanup = () => {
+    if (cleanupWasQueued) {
+      return;
+    }
+
+    cleanupWasQueued = true;
+    void runCleanupSafely(cleanup);
+  };
+
   Object.entries(responseHeaders).forEach(([headerName, headerValue]) => {
     if (headerValue) {
       res.setHeader(headerName, headerValue);
     }
   });
 
-  res.download(filePath, downloadName, async (downloadError) => {
-    await runCleanupSafely(cleanup);
+  res.attachment(downloadName);
 
-    if (downloadError && !res.headersSent) {
+  const fileStream = fs.createReadStream(filePath);
+
+  res.once('finish', queueCleanup);
+  res.once('close', queueCleanup);
+
+  fileStream.once('error', (downloadError) => {
+    queueCleanup();
+
+    if (!res.headersSent) {
       next(downloadError);
       return;
     }
 
-    if (downloadError) {
-      req.socket.destroy(downloadError);
-      return;
-    }
+    res.end();
   });
+
+  fileStream.pipe(res);
 };
 
-const cleanupPdfArtifacts = async ({ uploadPath, zipPath, jobDir }) => {
-  await removeFiles([uploadPath, zipPath]);
+const cleanupPdfArtifacts = async ({ uploadPath, outputPath, zipPath, jobDir }) => {
+  await removeFiles([uploadPath, outputPath, zipPath]);
   await removePath(jobDir);
 };
 
@@ -118,13 +136,13 @@ const createSingleOfficePdfHandler = ({ badRequestMessage, convert }) => createC
 const pdfToJpg = createConversionHandler({
   isRequestValid: hasSingleFile,
   badRequestMessage: 'Nenhum arquivo PDF foi enviado.',
-  convert: (req) => conversionService.convertPdfToZip(req.file),
+  convert: (req) => conversionService.convertPdfToJpg(req.file),
   buildDownload: (req, conversion) => ({
-    filePath: conversion.zipPath,
+    filePath: conversion.outputPath,
     downloadName: conversion.downloadName,
     cleanup: () => cleanupPdfArtifacts({
       uploadPath: req.file.path,
-      zipPath: conversion.zipPath,
+      outputPath: conversion.outputPath,
       jobDir: conversion.jobDir
     }),
     responseHeaders: {
@@ -133,7 +151,30 @@ const pdfToJpg = createConversionHandler({
   }),
   buildErrorCleanup: (req, conversion) => cleanupPdfArtifacts({
     uploadPath: req.file.path,
-    zipPath: conversion?.zipPath,
+    outputPath: conversion?.outputPath,
+    jobDir: conversion?.jobDir
+  })
+});
+
+const pdfToPng = createConversionHandler({
+  isRequestValid: hasSingleFile,
+  badRequestMessage: 'Nenhum arquivo PDF foi enviado.',
+  convert: (req) => conversionService.convertPdfToPng(req.file),
+  buildDownload: (req, conversion) => ({
+    filePath: conversion.outputPath,
+    downloadName: conversion.downloadName,
+    cleanup: () => cleanupPdfArtifacts({
+      uploadPath: req.file.path,
+      outputPath: conversion.outputPath,
+      jobDir: conversion.jobDir
+    }),
+    responseHeaders: {
+      'X-Conversion-Warning': conversion.warningMessage
+    }
+  }),
+  buildErrorCleanup: (req, conversion) => cleanupPdfArtifacts({
+    uploadPath: req.file.path,
+    outputPath: conversion?.outputPath,
     jobDir: conversion?.jobDir
   })
 });
@@ -142,6 +183,24 @@ const jpgToPdf = createConversionHandler({
   isRequestValid: (req) => hasMinimumFiles(req, 1),
   badRequestMessage: 'Envie ao menos uma imagem JPG ou JPEG.',
   convert: (req) => conversionService.convertJpgsToPdf(req.files),
+  buildDownload: (req, conversion) => ({
+    filePath: conversion.pdfPath,
+    downloadName: conversion.downloadName,
+    cleanup: () => cleanupPdfOutputArtifacts({
+      uploadPaths: getUploadPaths(req.files),
+      pdfPath: conversion.pdfPath
+    })
+  }),
+  buildErrorCleanup: (req, conversion) => cleanupPdfOutputArtifacts({
+    uploadPaths: getUploadPaths(req.files),
+    pdfPath: conversion?.pdfPath
+  })
+});
+
+const pngToPdf = createConversionHandler({
+  isRequestValid: (req) => hasMinimumFiles(req, 1),
+  badRequestMessage: 'Envie ao menos uma imagem PNG.',
+  convert: (req) => conversionService.convertPngsToPdf(req.files),
   buildDownload: (req, conversion) => ({
     filePath: conversion.pdfPath,
     downloadName: conversion.downloadName,
@@ -201,13 +260,13 @@ const splitPdf = createConversionHandler({
     downloadName: conversion.downloadName,
     cleanup: () => cleanupPdfArtifacts({
       uploadPath: req.file.path,
-      zipPath: conversion.zipPath,
+      outputPath: conversion.zipPath,
       jobDir: conversion.jobDir
     })
   }),
   buildErrorCleanup: (req, conversion) => cleanupPdfArtifacts({
     uploadPath: req.file.path,
-    zipPath: conversion?.zipPath,
+    outputPath: conversion?.zipPath,
     jobDir: conversion?.jobDir
   })
 });
@@ -224,7 +283,9 @@ const powerpointToPdf = createSingleOfficePdfHandler({
 
 module.exports = {
   pdfToJpg,
+  pdfToPng,
   jpgToPdf,
+  pngToPdf,
   removeBackground,
   mergePdf,
   splitPdf,

@@ -2,7 +2,7 @@
 
 Aplicacao web em Node.js para converter:
 
-- PDF em JPG, exportando todas as paginas em um arquivo ZIP
+- PDF em JPG, baixando JPG direto para uma pagina ou ZIP para varias paginas
 - JPG/JPEG em PDF, reunindo uma ou varias imagens em um unico documento
 - DOC e DOCX em PDF, com conversao real via LibreOffice no backend
 - PPT e PPTX em PDF, com conversao real via LibreOffice no backend
@@ -41,7 +41,7 @@ backend/
 - Upload com validacao de tipo
 - Drag and drop no frontend
 - Conversao de PDF para JPG com todas as paginas
-- Compactacao das imagens em ZIP para download
+- Download direto do JPG quando o PDF tem uma pagina e compactacao em ZIP quando tem varias
 - Conversao de uma ou varias imagens JPG em um unico PDF
 - Conversao de um arquivo DOCX em um novo PDF textual
 - Conversao de um arquivo PPTX em um novo PDF textual
@@ -151,7 +151,7 @@ Se quiser manter o navegador fechado mesmo usando o fluxo completo, rode com `NO
 
 ### POST /upload/pdf-to-jpg
 
-Recebe um arquivo no campo `file` e retorna um ZIP com as imagens JPG.
+Recebe um arquivo no campo `file` e retorna um JPG quando o PDF tem uma pagina, ou um ZIP com as imagens JPG quando tem varias paginas.
 
 ### POST /upload/jpg-to-pdf
 

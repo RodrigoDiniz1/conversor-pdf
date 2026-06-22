@@ -6,6 +6,7 @@ const {
   handleImageUpload,
   handleMergePdfUpload,
   handleJpgUpload,
+  handlePngUpload,
   handleWordUpload,
   handlePowerpointUpload
 } = require('../middlewares/uploadMiddleware');
@@ -13,7 +14,9 @@ const {
 const router = express.Router();
 
 router.post('/pdf-to-jpg', handlePdfUpload, uploadController.pdfToJpg);
+router.post('/pdf-to-png', handlePdfUpload, uploadController.pdfToPng);
 router.post('/jpg-to-pdf', handleJpgUpload, uploadController.jpgToPdf);
+router.post('/png-to-pdf', handlePngUpload, uploadController.pngToPdf);
 router.post('/remove-background', handleImageUpload, uploadController.removeBackground);
 router.post('/merge-pdf', handleMergePdfUpload, uploadController.mergePdf);
 router.post('/split-pdf', handlePdfUpload, uploadController.splitPdf);

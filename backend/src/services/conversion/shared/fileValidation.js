@@ -11,6 +11,7 @@ const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 const IMAGE_SIGNATURE_HEADER_BYTES = 12;
 const INVALID_PDF_FILE_MESSAGE = 'O arquivo enviado não é um PDF válido.';
 const INVALID_JPG_FILE_MESSAGE = 'O arquivo enviado não é uma imagem JPG/JPEG válida.';
+const INVALID_PNG_FILE_MESSAGE = 'O arquivo enviado não é uma imagem PNG válida.';
 const INVALID_IMAGE_FILE_MESSAGE = 'O arquivo enviado não é uma imagem JPG, PNG ou WebP válida.';
 
 const buildInvalidFileError = (message) => ({
@@ -83,6 +84,14 @@ const assertValidJpgFile = async (filePath) => {
   });
 };
 
+const assertValidPngFile = async (filePath) => {
+  await assertFileSignature(filePath, {
+    byteCount: PNG_SIGNATURE.length,
+    isSupported: hasPngSignature,
+    message: INVALID_PNG_FILE_MESSAGE
+  });
+};
+
 const assertSupportedImageExtension = (filename) => {
   if (!IMAGE_EXTENSIONS.has(path.extname(filename).toLowerCase())) {
     throw buildInvalidFileError(INVALID_IMAGE_FILE_MESSAGE);
@@ -107,6 +116,7 @@ module.exports = {
   assertValidImageFile,
   assertValidJpgFile,
   assertValidPdfFile,
+  assertValidPngFile,
   buildInvalidFileError,
   hasPngSignature,
   hasSupportedExtension

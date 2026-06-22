@@ -3,7 +3,6 @@ const toolCatalog = {
     id: 'jpg-to-pdf',
     title: 'JPG para PDF',
     cardDescription: 'Converta uma ou mais imagens JPG ou JPEG em um único arquivo PDF.',
-    cardHighlights: ['Aceita várias imagens', 'Entrega um PDF único'],
     detailDescription: 'Envie uma ou mais imagens JPG/JPEG e gere um PDF único em uma tela dedicada para esse fluxo.',
     note: 'A ordem final do PDF segue a ordem em que os arquivos forem enviados nesta etapa.',
     section: 'active',
@@ -13,7 +12,7 @@ const toolCatalog = {
     status: 'Disponível agora',
     endpoint: '/upload/jpg-to-pdf',
     fieldName: 'files',
-    accept: '.jpg,.jpeg,image/jpeg,image/jpg',
+    accept: '.jpg,.jpeg,.jfif,image/jpeg,image/jpg,image/pjpeg,image/jfif',
     allowMultiple: true,
     chooseLabel: 'Selecionar imagens JPG',
     idleSubtitle: 'Ou solte imagens JPG/JPEG aqui',
@@ -28,16 +27,43 @@ const toolCatalog = {
       { type: 'pdf', label: 'PDF' }
     ]
   },
+  'png-to-pdf': {
+    id: 'png-to-pdf',
+    title: 'PNG para PDF',
+    cardDescription: 'Converta uma ou mais imagens PNG em um único arquivo PDF.',
+    detailDescription: 'Envie uma ou mais imagens PNG e gere um PDF único em uma tela dedicada para esse fluxo.',
+    note: 'A ordem final do PDF segue a ordem em que os arquivos forem enviados nesta etapa.',
+    section: 'active',
+    kicker: 'Conversão ativa',
+    helper: 'Envie uma ou mais imagens PNG para montar um PDF único.',
+    available: true,
+    status: 'Disponível agora',
+    endpoint: '/upload/png-to-pdf',
+    fieldName: 'files',
+    accept: '.png,image/png,image/x-png',
+    allowMultiple: true,
+    chooseLabel: 'Selecionar imagens PNG',
+    idleSubtitle: 'Ou solte imagens PNG aqui',
+    lockedSubtitle: 'Esta ferramenta ainda não está disponível',
+    processingMessage: 'Enviando as imagens PNG e montando o PDF final...',
+    successMessage: 'Conversão concluída. O PDF foi baixado automaticamente.',
+    readyMessage: (fileCount) => `${fileCount} imagem(ns) PNG pronta(s) para conversão.`,
+    receivedMessage: (fileCount) => `${fileCount} imagem(ns) PNG recebida(s). A conversão começa agora.`,
+    defaultDownloadName: 'pngs-convertidos.pdf',
+    badges: [
+      { type: 'png', label: 'PNG' },
+      { type: 'pdf', label: 'PDF' }
+    ]
+  },
   'pdf-to-jpg': {
     id: 'pdf-to-jpg',
     title: 'PDF para JPG',
-    cardDescription: 'Transforme seu PDF em imagens JPG e baixe tudo em um único arquivo ZIP.',
-    cardHighlights: ['Recebe um PDF por vez', 'Baixa um ZIP com páginas JPG'],
-    detailDescription: 'Envie um PDF por vez e receba um ZIP com todas as páginas convertidas em JPG.',
+    cardDescription: 'Transforme seu PDF em imagens JPG, com download direto quando houver uma única página.',
+    detailDescription: 'Envie um PDF por vez. PDFs de uma página baixam um JPG direto; PDFs com várias páginas baixam um ZIP.',
     note: 'Quando o PDF depender de fontes do sistema, a tela avisa para deixar claro quando a fidelidade tipográfica pode variar.',
     section: 'active',
     kicker: 'Conversão ativa',
-    helper: 'Envie um PDF por vez e receba um ZIP com todas as páginas em JPG.',
+    helper: 'Envie um PDF por vez e receba JPG direto ou ZIP com todas as páginas.',
     available: true,
     status: 'Disponível agora',
     endpoint: '/upload/pdf-to-jpg',
@@ -48,20 +74,47 @@ const toolCatalog = {
     idleSubtitle: 'Ou solte um PDF aqui',
     lockedSubtitle: 'Esta ferramenta ainda não está disponível',
     processingMessage: 'Enviando o PDF e convertendo as páginas em JPG...',
-    successMessage: 'Conversão concluída. O ZIP com as imagens foi baixado automaticamente.',
+    successMessage: 'Conversão concluída. O arquivo convertido foi baixado automaticamente.',
     readyMessage: () => 'PDF pronto para conversão.',
     receivedMessage: () => 'PDF recebido. A conversão começa agora.',
-    defaultDownloadName: 'resultado-convertido.zip',
+    defaultDownloadName: 'resultado-convertido.jpg',
     badges: [
       { type: 'pdf', label: 'PDF' },
       { type: 'jpg', label: 'JPG' }
+    ]
+  },
+  'pdf-to-png': {
+    id: 'pdf-to-png',
+    title: 'PDF para PNG',
+    cardDescription: 'Transforme seu PDF em imagens PNG, com download direto quando houver uma única página.',
+    detailDescription: 'Envie um PDF por vez. PDFs de uma página baixam um PNG direto; PDFs com várias páginas baixam um ZIP.',
+    note: 'Quando o PDF depender de fontes do sistema, a tela avisa para deixar claro quando a fidelidade tipográfica pode variar.',
+    section: 'active',
+    kicker: 'Conversão ativa',
+    helper: 'Envie um PDF por vez e receba PNG direto ou ZIP com todas as páginas.',
+    available: true,
+    status: 'Disponível agora',
+    endpoint: '/upload/pdf-to-png',
+    fieldName: 'file',
+    accept: '.pdf,application/pdf',
+    allowMultiple: false,
+    chooseLabel: 'Selecionar arquivo PDF',
+    idleSubtitle: 'Ou solte um PDF aqui',
+    lockedSubtitle: 'Esta ferramenta ainda não está disponível',
+    processingMessage: 'Enviando o PDF e convertendo as páginas em PNG...',
+    successMessage: 'Conversão concluída. O arquivo convertido foi baixado automaticamente.',
+    readyMessage: () => 'PDF pronto para conversão.',
+    receivedMessage: () => 'PDF recebido. A conversão começa agora.',
+    defaultDownloadName: 'resultado-convertido.png',
+    badges: [
+      { type: 'pdf', label: 'PDF' },
+      { type: 'png', label: 'PNG' }
     ]
   },
   'remove-background': {
     id: 'remove-background',
     title: 'Remover Background',
     cardDescription: 'Recorte o fundo da imagem com alta qualidade e baixe o resultado em PNG transparente.',
-    cardHighlights: ['Aceita JPG, PNG e WebP', 'Entrega PNG transparente'],
     detailDescription: 'Envie uma imagem JPG, PNG ou WebP por vez para remover o fundo e baixar um PNG transparente, pronto para catálogos, miniaturas e design.',
     note: 'A saída final é gerada em PNG com transparência para preservar melhor o recorte.',
     section: 'active',
@@ -71,7 +124,7 @@ const toolCatalog = {
     status: 'Disponível agora',
     endpoint: '/upload/remove-background',
     fieldName: 'file',
-    accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/jpg,image/png,image/webp',
+    accept: '.jpg,.jpeg,.jfif,.png,.webp,image/jpeg,image/jpg,image/pjpeg,image/jfif,image/png,image/x-png,image/webp',
     allowMultiple: false,
     chooseLabel: 'Selecionar imagem',
     idleSubtitle: 'Ou solte uma imagem JPG, PNG ou WebP aqui',
@@ -90,7 +143,6 @@ const toolCatalog = {
     id: 'merge-pdf',
     title: 'Juntar PDF',
     cardDescription: 'Mescle dois ou mais arquivos PDF em um único documento final.',
-    cardHighlights: ['Une dois ou mais PDFs', 'Permite reordenar antes de juntar'],
     detailDescription: 'Envie dois ou mais PDFs, ajuste a sequência na lista e receba um arquivo final unificado em uma tela dedicada à montagem do documento.',
     note: 'A junção respeita a ordem mostrada na lista, que você pode reorganizar antes de enviar.',
     section: 'organize',
@@ -121,7 +173,6 @@ const toolCatalog = {
     id: 'split-pdf',
     title: 'Dividir PDF',
     cardDescription: 'Separe um PDF por páginas e baixe tudo organizado em um único ZIP.',
-    cardHighlights: ['Separa página por página', 'Entrega tudo em ZIP'],
     detailDescription: 'Envie um PDF por vez e receba um ZIP com um arquivo PDF separado para cada página do documento.',
     note: 'Cada página do PDF original será exportada como um arquivo individual dentro do ZIP final.',
     section: 'organize',
@@ -150,7 +201,6 @@ const toolCatalog = {
     id: 'word-to-pdf',
     title: 'Word para PDF',
     cardDescription: 'Converta documentos Word em PDF com um fluxo direto e pronto para download.',
-    cardHighlights: ['Recebe um DOC ou DOCX por vez', 'Entrega um PDF único'],
     detailDescription: 'Envie um arquivo DOC ou DOCX por vez. Quando o backend tiver o LibreOffice disponível, o PDF sai com mais fidelidade; sem ele, o DOCX ainda pode usar um fallback textual.',
     note: 'No deploy com LibreOffice, o backend faz a conversão real do documento. Se esse binário não estiver disponível, apenas DOCX pode cair no fallback textual.',
     section: 'future',
@@ -179,7 +229,6 @@ const toolCatalog = {
     id: 'powerpoint-to-pdf',
     title: 'PowerPoint para PDF',
     cardDescription: 'Converta apresentações PowerPoint em PDF mantendo a leitura slide a slide.',
-    cardHighlights: ['Recebe um PPT ou PPTX por vez', 'Entrega um PDF único'],
     detailDescription: 'Envie um arquivo PPT ou PPTX por vez. Quando o backend tiver o LibreOffice disponível, o PDF sai com mais fidelidade; sem ele, o PPTX ainda pode usar um fallback textual.',
     note: 'No deploy com LibreOffice, o backend faz a conversão real dos slides. Se esse binário não estiver disponível, apenas PPTX pode cair no fallback textual.',
     section: 'future',
@@ -207,9 +256,15 @@ const toolCatalog = {
 };
 
 const toolSections = {
-  active: ['jpg-to-pdf', 'pdf-to-jpg', 'remove-background'],
+  active: ['jpg-to-pdf', 'png-to-pdf', 'pdf-to-jpg', 'pdf-to-png', 'remove-background'],
   organize: ['merge-pdf', 'split-pdf'],
   future: ['word-to-pdf', 'powerpoint-to-pdf']
+};
+
+const homeToolGridRows = {
+  active: ['jpg-to-pdf', 'png-to-pdf', 'merge-pdf'],
+  organize: ['pdf-to-jpg', 'pdf-to-png', 'split-pdf'],
+  future: ['remove-background', 'word-to-pdf', 'powerpoint-to-pdf']
 };
 
 const toolExperienceCatalog = {
@@ -218,10 +273,20 @@ const toolExperienceCatalog = {
     soft: 'rgba(244, 197, 57, 0.14)',
     border: 'rgba(244, 197, 57, 0.28)'
   },
+  'png-to-pdf': {
+    accent: '#0f766e',
+    soft: 'rgba(15, 118, 110, 0.12)',
+    border: 'rgba(15, 118, 110, 0.24)'
+  },
   'pdf-to-jpg': {
     accent: '#df572c',
     soft: 'rgba(255, 109, 61, 0.12)',
     border: 'rgba(255, 109, 61, 0.24)'
+  },
+  'pdf-to-png': {
+    accent: '#2871c8',
+    soft: 'rgba(40, 113, 200, 0.12)',
+    border: 'rgba(40, 113, 200, 0.24)'
   },
   'remove-background': {
     accent: '#0d9488',
@@ -253,14 +318,10 @@ const toolExperienceCatalog = {
 const SERVER_UNAVAILABLE_MESSAGE = 'Não foi possível encontrar o servidor de conversão.';
 const REQUEST_TIMEOUT_MESSAGE = 'O backend não respondeu a tempo de concluir o envio.';
 const NETWORK_CONNECTION_MESSAGE = 'Não foi possível conectar ao servidor.';
-const SERVER_UNAVAILABLE_HINTS = [
-  'Confirme se o backend foi publicado ou se o servidor local está no ar.',
-  'Verifique a URL da API e as configurações do ambiente antes do deploy.',
-  'Se o servidor acabou de subir, espere alguns segundos e tente novamente.'
-];
 const DEFAULT_ACTIVE_TOOL_ID = toolSections.active[0];
 const REMOVE_BACKGROUND_TOOL_ID = 'remove-background';
 const MERGE_PDF_TOOL_ID = 'merge-pdf';
+const TOOL_HASH_PREFIX = '#tool=';
 const MAX_FILE_SIZE_BYTES = 1024 * 1024 * 1024;
 const MAX_FILE_SIZE_LABEL = '1GB';
 const BROWSER_BACKGROUND_REMOVAL_WORKER_URL = new URL('./background-removal-worker.js', window.location.href).href;
@@ -299,6 +360,33 @@ const includesAnyMessage = (message = '', expectedMessages = []) => (
 
 const createUploadFailure = (kind, message, extra = {}) => ({ kind, message, ...extra });
 
+const getToolHash = (toolId) => `${TOOL_HASH_PREFIX}${encodeURIComponent(toolId)}`;
+
+const getToolIdFromHash = () => {
+  const currentHash = window.location.hash || '';
+
+  if (!currentHash.startsWith(TOOL_HASH_PREFIX)) {
+    return null;
+  }
+
+  const toolId = decodeURIComponent(currentHash.slice(TOOL_HASH_PREFIX.length));
+  return toolCatalog[toolId] ? toolId : null;
+};
+
+const syncToolHash = (toolId = null) => {
+  const nextHash = toolId ? getToolHash(toolId) : '';
+
+  if ((window.location.hash || '') === nextHash) {
+    return;
+  }
+
+  const nextUrl = nextHash
+    ? `${window.location.pathname}${window.location.search}${nextHash}`
+    : `${window.location.pathname}${window.location.search}`;
+
+  window.history.replaceState(null, '', nextUrl);
+};
+
 const normalizeApiBaseUrl = (value = '') => value.trim().replace(/\/+$/, '');
 
 const getConfiguredApiBaseUrl = () => normalizeApiBaseUrl(window.APP_CONFIG?.API_BASE_URL || '');
@@ -331,6 +419,7 @@ const toolStatusChip = document.getElementById('tool-status-chip');
 const modeHelper = document.getElementById('mode-helper');
 const toolBadgePrimary = document.getElementById('tool-badge-primary');
 const toolBadgeSecondary = document.getElementById('tool-badge-secondary');
+const converterForm = document.querySelector('.converter-form');
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('file-input');
 const chooseButtonText = document.getElementById('choose-button-text');
@@ -384,6 +473,7 @@ const getCurrentToolExperience = () => toolExperienceCatalog[state.activeToolId]
 const toolValidation = window.ToolValidation;
 const isClientSideTool = (tool) => tool?.id === REMOVE_BACKGROUND_TOOL_ID;
 const isManualSubmitTool = (tool) => Boolean(tool?.manualSubmit);
+const shouldShowSubmitButton = (tool) => Boolean(tool?.available) && !isClientSideTool(tool) && state.files.length > 0;
 
 if (!toolValidation?.getValidatedFilesForTool) {
   throw new Error('Tool validation runtime is not available.');
@@ -924,7 +1014,7 @@ const createToolCardMarkup = (tool) => `
 `;
 
 const renderToolCards = () => {
-  Object.entries(toolSections).forEach(([sectionId, toolIds]) => {
+  Object.entries(homeToolGridRows).forEach(([sectionId, toolIds]) => {
     const targetGrid = toolGridBySection[sectionId];
 
     if (!targetGrid) {
@@ -1011,7 +1101,7 @@ const syncToolView = () => {
   clearButton.disabled = state.isBusy || !tool.available;
   submitButton.disabled = state.isBusy || !tool.available || state.files.length === 0;
   submitButton.textContent = state.isBusy ? 'PROCESSANDO...' : (tool.submitLabel || 'Iniciar conversão');
-  submitButton.classList.toggle('is-hidden', !isManualSubmitTool(tool) || state.files.length === 0);
+  submitButton.classList.toggle('is-hidden', !shouldShowSubmitButton(tool));
   dropzone.classList.toggle('is-busy', state.isBusy);
   dropzone.classList.toggle('is-locked', !tool.available);
   dropzone.setAttribute('aria-disabled', String(!tool.available));
@@ -1140,6 +1230,7 @@ const resetSelection = ({ keepStatus = false } = {}) => {
 const goHome = () => {
   state.view = 'home';
   state.activeToolId = null;
+  syncToolHash();
   clearLastResult();
   state.lastError = null;
   resetSelection();
@@ -1147,7 +1238,12 @@ const goHome = () => {
 };
 
 const openTool = (toolId) => {
+  if (!toolCatalog[toolId]) {
+    return;
+  }
+
   state.activeToolId = toolId;
+  syncToolHash(toolId);
   clearLastResult();
   state.lastError = null;
   resetSelection();
@@ -1185,7 +1281,7 @@ const renderPreview = (file, index) => {
   const visual = document.createElement('img');
   visual.alt = '';
 
-  if (tool?.id === 'jpg-to-pdf' || tool?.id === 'remove-background') {
+  if (tool?.id === 'jpg-to-pdf' || tool?.id === 'png-to-pdf' || tool?.id === 'remove-background') {
     visual.className = 'preview-thumb';
     visual.src = URL.createObjectURL(file);
     visual.addEventListener('load', () => URL.revokeObjectURL(visual.src), { once: true });
@@ -1566,7 +1662,9 @@ const handleFiles = async (incomingFiles) => {
       return;
     }
 
-    await startConversion();
+    window.setTimeout(() => {
+      void startConversion();
+    }, 0);
   } catch (error) {
     resetSelection({ keepStatus: true });
     setStatus(error.message, 'error');
@@ -1583,10 +1681,43 @@ const handleToolCardClick = (event) => {
   openTool(card.dataset.toolId);
 };
 
+const restoreViewFromLocation = () => {
+  const toolId = getToolIdFromHash();
+
+  if (toolId) {
+    openTool(toolId);
+    return;
+  }
+
+  syncView();
+};
+
 renderToolCards();
-syncView();
+restoreViewFromLocation();
 
 homeView.addEventListener('click', handleToolCardClick);
+
+if (converterForm) {
+  converterForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+  });
+}
+
+window.addEventListener('hashchange', () => {
+  const toolId = getToolIdFromHash();
+
+  if (!toolId) {
+    if (state.view !== 'home') {
+      goHome();
+    }
+
+    return;
+  }
+
+  if (toolId !== state.activeToolId || state.view === 'home') {
+    openTool(toolId);
+  }
+});
 
 brandHomeButton.addEventListener('click', goHome);
 backHomeButton.addEventListener('click', goHome);

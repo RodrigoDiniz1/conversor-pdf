@@ -6,10 +6,12 @@ const { ensureDirectory, createJobId } = require('../utils/fileUtils');
 const uploadDir = path.join(__dirname, '..', '..', 'tmp', 'uploads');
 const maxFileSizeMb = 1024;
 const maxFileSize = maxFileSizeMb * 1024 * 1024;
-const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp']);
-const imageMimeTypes = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
-const jpgExtensions = new Set(['.jpg', '.jpeg']);
-const jpgMimeTypes = new Set(['image/jpeg', 'image/jpg']);
+const imageExtensions = new Set(['.jpg', '.jpeg', '.jfif', '.png', '.webp']);
+const imageMimeTypes = new Set(['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/x-png', 'image/webp']);
+const jpgExtensions = new Set(['.jpg', '.jpeg', '.jfif']);
+const jpgMimeTypes = new Set(['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif']);
+const pngExtensions = new Set(['.png']);
+const pngMimeTypes = new Set(['image/png', 'image/x-png']);
 const wordExtensions = new Set(['.doc', '.docx']);
 const wordMimeTypes = new Set([
   'application/msword',
@@ -53,6 +55,10 @@ const fileRules = {
   jpg: {
     errorMessage: 'Envie apenas imagens JPG ou JPEG válidas.',
     isValid: (file) => jpgExtensions.has(getFileExtension(file)) || jpgMimeTypes.has(file.mimetype)
+  },
+  png: {
+    errorMessage: 'Envie apenas imagens PNG validas.',
+    isValid: (file) => pngExtensions.has(getFileExtension(file)) || pngMimeTypes.has(file.mimetype)
   },
   word: {
     errorMessage: 'Envie um arquivo DOC ou DOCX válido.',
@@ -129,6 +135,12 @@ module.exports = {
     maxCount: 20,
     multiple: true,
     rule: fileRules.jpg
+  }),
+  handlePngUpload: createUploadHandler({
+    fieldName: 'files',
+    maxCount: 20,
+    multiple: true,
+    rule: fileRules.png
   }),
   handleWordUpload: createUploadHandler({
     fieldName: 'file',

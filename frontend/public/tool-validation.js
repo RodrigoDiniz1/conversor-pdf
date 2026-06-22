@@ -5,10 +5,12 @@
 
   const isPdfFile = (file) => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
-  const isJpgFile = (file) => ['image/jpeg', 'image/jpg'].includes(file.type) || /\.jpe?g$/i.test(file.name);
+  const isJpgFile = (file) => ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif'].includes(file.type) || /\.(jpe?g|jfif)$/i.test(file.name);
 
-  const isImageFile = (file) => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)
-    || /\.(jpe?g|png|webp)$/i.test(file.name);
+  const isPngFile = (file) => ['image/png', 'image/x-png'].includes(file.type) || /\.png$/i.test(file.name);
+
+  const isImageFile = (file) => ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/x-png', 'image/webp'].includes(file.type)
+    || /\.(jpe?g|jfif|png|webp)$/i.test(file.name);
 
   const isWordFile = (file) => (
     ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)
@@ -113,12 +115,39 @@
       }
 
       throw new Error('Selecione um arquivo PPT ou PPTX válido.');
+    },
+    'pdf-to-png': (files, { pdfFiles, pngFiles }) => {
+      if (pdfFiles.length === 1 && pdfFiles.length === files.length) {
+        return [pdfFiles[0]];
+      }
+
+      if (pdfFiles.length > 1) {
+        throw new Error('Para converter PDF em PNG, envie apenas um PDF por vez.');
+      }
+
+      if (pngFiles.length > 0) {
+        throw new Error('Esta tela é de PDF para PNG. Escolha PNG para PDF se quiser enviar imagens.');
+      }
+
+      throw new Error('Selecione um arquivo PDF válido.');
+    },
+    'png-to-pdf': (files, { pdfFiles, pngFiles }) => {
+      if (pngFiles.length === files.length && pngFiles.length > 0) {
+        return files;
+      }
+
+      if (pdfFiles.length > 0) {
+        throw new Error('Esta tela é de PNG para PDF. Escolha PDF para PNG se quiser enviar um PDF.');
+      }
+
+      throw new Error('Selecione apenas imagens PNG válidas.');
     }
   });
 
   const getValidatedFilesForTool = (tool, files) => {
     const pdfFiles = files.filter(isPdfFile);
     const jpgFiles = files.filter(isJpgFile);
+    const pngFiles = files.filter(isPngFile);
     const imageFiles = files.filter(isImageFile);
     const wordFiles = files.filter(isWordFile);
     const powerpointFiles = files.filter(isPowerpointFile);
@@ -136,6 +165,7 @@
     return validateFiles(files, {
       pdfFiles,
       jpgFiles,
+      pngFiles,
       imageFiles,
       wordFiles,
       powerpointFiles
@@ -148,6 +178,7 @@
       isImageFile,
       isJpgFile,
       isPdfFile,
+      isPngFile,
       isPowerpointFile,
       isWordFile
     }),

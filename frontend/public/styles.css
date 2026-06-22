@@ -430,79 +430,8 @@ img {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
-
-.tool-section {
-  position: relative;
-  overflow: hidden;
-  padding: 26px;
-  border-radius: 34px;
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-soft);
-  display: grid;
-  gap: 16px;
-}
-
-.tool-section::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 7px;
-  background: linear-gradient(90deg, var(--accent-dark), var(--accent-gold));
-}
-
-.tool-section::after {
-  right: -34px;
-  top: -30px;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.45), transparent 70%);
-}
-
-.section-live {
-  background: linear-gradient(180deg, var(--section-warm), rgba(255, 251, 246, 0.94));
-}
-
-.section-organize {
-  background: linear-gradient(180deg, var(--section-cool), rgba(255, 251, 246, 0.94));
-}
-
-.section-lab {
-  background: linear-gradient(180deg, var(--section-sand), rgba(255, 251, 246, 0.94));
-}
-
-.section-organize::before {
-  background: linear-gradient(90deg, #4564ba, #87a6fb);
-}
-
-.section-lab::before {
-  background: linear-gradient(90deg, #c79728, #e8c86e);
-}
-
-.section-header,
-.home-section-heading {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: 10px;
-}
-
-.section-eyebrow,
-.tool-card-eyebrow {
-  color: var(--muted-strong);
-}
-
-.section-title,
-.home-section-title {
-  margin: 0;
-  font-size: 1.56rem;
-  line-height: 1.04;
-  letter-spacing: -0.05em;
-}
-
-.section-description,
 .home-section-copy,
 .proof-card-copy,
 .faq-answer {
@@ -516,11 +445,12 @@ img {
   position: relative;
   z-index: 1;
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 18px;
 }
 
 .home-columns > .tool-grid {
-  align-content: start;
+  display: contents;
 }
 
 .tool-grid:empty {
@@ -634,6 +564,7 @@ img {
   overflow: visible;
   width: 100%;
   min-height: 252px;
+  height: 100%;
   border: 1px solid #d2d7e1;
   border-radius: 18px;
   background: #ffffff;
@@ -690,49 +621,6 @@ img {
   line-height: 1.5;
 }
 
-.tool-card-highlights {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 8px;
-}
-
-.tool-card-highlights li {
-  position: relative;
-  padding-left: 18px;
-  color: var(--muted-strong);
-  font-size: 0.88rem;
-  line-height: 1.52;
-}
-
-.tool-card-highlights li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.54rem;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent-dark);
-  box-shadow: 0 0 0 5px rgba(240, 92, 47, 0.12);
-}
-
-.section-organize .tool-card-highlights li::before {
-  background: #4564ba;
-  box-shadow: 0 0 0 5px rgba(69, 100, 186, 0.12);
-}
-
-.section-lab .tool-card-highlights li::before {
-  background: #c79728;
-  box-shadow: 0 0 0 5px rgba(199, 151, 40, 0.12);
-}
-
-.tool-card-footer {
-  display: none;
-}
-
-.tool-card-pill,
 .tool-status-chip {
   display: inline-flex;
   align-items: center;
@@ -746,13 +634,11 @@ img {
   text-transform: uppercase;
 }
 
-.tool-card-pill.is-available,
 .tool-status-chip.is-available {
   background: rgba(31, 138, 97, 0.12);
   color: var(--success);
 }
 
-.tool-card-pill.is-locked,
 .tool-status-chip.is-locked {
   background: rgba(20, 36, 52, 0.08);
   color: #60707f;
@@ -1559,10 +1445,6 @@ img {
     grid-template-columns: 1fr;
   }
 
-  .home-columns {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .proof-grid {
     grid-template-columns: 1fr;
   }
@@ -1574,6 +1456,10 @@ img {
 }
 
 @media (max-width: 900px) {
+  .home-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .site-header {
     justify-content: flex-start;
   }
@@ -1586,7 +1472,6 @@ img {
     text-align: left;
   }
 
-  .home-columns,
   .hero-stat-list,
   .preview-list {
     grid-template-columns: 1fr;
@@ -1613,6 +1498,10 @@ img {
 }
 
 @media (max-width: 760px) {
+  .home-columns {
+    grid-template-columns: 1fr;
+  }
+
   html {
     scroll-behavior: auto;
   }
