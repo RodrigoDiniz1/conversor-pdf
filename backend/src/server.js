@@ -1,5 +1,9 @@
 const path = require('path');
 
+const { loadEnvFile } = require('./utils/envFile');
+
+loadEnvFile();
+
 const app = require('./app');
 const { pruneTemporaryArtifacts } = require('./utils/fileUtils');
 

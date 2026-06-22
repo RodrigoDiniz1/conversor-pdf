@@ -1,9 +1,13 @@
 node_modules
 npm-debug.log
+.env
+.env.*
+!.env.example
 .git
 .gitignore
 frontend/node_modules
 frontend/dist
+backend/tmp/*.log
 backend/tmp/output
 backend/tmp/uploads
 backend/tmp/office-smoke

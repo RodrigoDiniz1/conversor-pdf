@@ -1,7 +1,11 @@
 node_modules/
 frontend/dist/
+.env
+.env.*
+!.env.example
 
 # Arquivos temporarios do backend
+backend/tmp/*.log
 backend/tmp/uploads/*
 backend/tmp/output/*
 !backend/tmp/uploads/.gitkeep

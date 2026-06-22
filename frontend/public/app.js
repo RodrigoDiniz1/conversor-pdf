@@ -129,10 +129,10 @@ const toolCatalog = {
     chooseLabel: 'Selecionar imagem',
     idleSubtitle: 'Ou solte uma imagem JPG, PNG ou WebP aqui',
     lockedSubtitle: 'Esta ferramenta ainda não está disponível',
-    processingMessage: 'Preparando o recorte no seu navegador e baixando os recursos da IA, se necessário...',
+    processingMessage: 'Enviando a imagem para o motor de recorte em alta qualidade...',
     successMessage: 'Recorte concluído. O PNG transparente foi baixado automaticamente.',
     readyMessage: () => 'Imagem pronta para recorte.',
-    receivedMessage: () => 'Imagem recebida. O recorte será feito no seu navegador.',
+    receivedMessage: () => 'Imagem recebida. O recorte será processado no servidor.',
     defaultDownloadName: 'imagem-sem-fundo-convertida.png',
     badges: [
       { type: 'image', label: 'IMG' },
@@ -330,6 +330,7 @@ const BROWSER_BACKGROUND_REMOVAL_FALLBACK_MODEL = 'isnet_quint8';
 const BROWSER_BACKGROUND_REMOVAL_DEFAULT_ERROR = 'Não foi possível concluir o recorte neste navegador.';
 const BROWSER_BACKGROUND_REMOVAL_NETWORK_ERROR = 'Não foi possível baixar os recursos do recorte no seu navegador.';
 const BROWSER_BACKGROUND_REMOVAL_FALLBACK_WARNING = 'Seu navegador usou o modo compacto para concluir o recorte.';
+const BROWSER_BACKGROUND_REMOVAL_SERVER_FALLBACK_WARNING = 'O servidor ficou indisponível, então o recorte foi concluído no navegador.';
 
 const state = {
   view: 'home',
@@ -471,7 +472,8 @@ const viewRegistry = {
 const getCurrentTool = () => toolCatalog[state.activeToolId] || null;
 const getCurrentToolExperience = () => toolExperienceCatalog[state.activeToolId] || {};
 const toolValidation = window.ToolValidation;
-const isClientSideTool = (tool) => tool?.id === REMOVE_BACKGROUND_TOOL_ID;
+const isClientSideTool = (tool) => tool?.clientSideProcessing === true;
+const supportsBrowserBackgroundRemoval = (tool) => Boolean(tool?.browserFallbackAvailable);
 const isManualSubmitTool = (tool) => Boolean(tool?.manualSubmit);
 const shouldShowSubmitButton = (tool) => Boolean(tool?.available) && !isClientSideTool(tool) && state.files.length > 0;
 
@@ -829,7 +831,7 @@ const runBackgroundRemovalInBrowser = async (file, model = browserBackgroundRemo
 };
 
 const runClientSideTool = async (tool) => {
-  if (!isClientSideTool(tool)) {
+  if (!supportsBrowserBackgroundRemoval(tool)) {
     throw new Error('Ferramenta client-side inválida.');
   }
 
@@ -1443,7 +1445,7 @@ const isLocalApiFallbackOrigin = (origin) => {
 };
 
 const shouldUseServerFallbackForClientTool = (tool) => {
-  return tool?.id === REMOVE_BACKGROUND_TOOL_ID;
+  return supportsBrowserBackgroundRemoval(tool);
 };
 
 const buildLocalApiOrigins = () => {
@@ -1596,9 +1598,36 @@ const uploadWithProgress = async () => {
   throw new Error(getServerUnavailableMessage());
 };
 
+const uploadToolWithBrowserFallback = async (tool) => {
+  try {
+    return await uploadWithProgress();
+  } catch (error) {
+    if (!supportsBrowserBackgroundRemoval(tool) || !isServerUnavailableError(error.message)) {
+      throw error;
+    }
+
+    setStatus('O servidor de recorte não respondeu. Tentando concluir no navegador...');
+    resetProgress();
+    updateProgress(5);
+
+    const fallbackResult = await runClientSideTool(tool);
+
+    return {
+      ...fallbackResult,
+      warningMessage: fallbackResult.warningMessage
+        ? `${BROWSER_BACKGROUND_REMOVAL_SERVER_FALLBACK_WARNING} ${fallbackResult.warningMessage}`
+        : BROWSER_BACKGROUND_REMOVAL_SERVER_FALLBACK_WARNING
+    };
+  }
+};
+
 const processCurrentTool = async (tool) => {
   if (isClientSideTool(tool)) {
     return runClientSideToolWithFallback(tool);
+  }
+
+  if (supportsBrowserBackgroundRemoval(tool)) {
+    return uploadToolWithBrowserFallback(tool);
   }
 
   return uploadWithProgress();

@@ -96,6 +96,7 @@ O frontend nao precisa ser publicado separadamente na Hostinger se voce usar ess
 Se a Hostinger pedir variaveis de ambiente, a principal para frontend/backend no mesmo dominio e:
 
 - `CORS_ALLOWED_ORIGINS=https://seudominio.com`
+- `REMOVE_BG_API_KEY=sua_chave_da_remove_bg`
 
 Se voce usar subdominios diferentes, por exemplo frontend e API separados, use uma lista separada por virgula:
 
@@ -138,6 +139,21 @@ npm run dev
 ```
 
 O comando `npm run dev` agora sobe o backend com recarga automatica, espera a rota de healthcheck responder e abre a aplicacao em `http://localhost:3000` no navegador padrao.
+
+Para a ferramenta **Remover Background**, crie um arquivo `.env` na raiz do projeto com sua chave da remove.bg:
+
+```bash
+REMOVE_BG_API_KEY=sua_chave_da_remove_bg
+```
+
+Variaveis opcionais para esse fluxo:
+
+- `REMOVE_BG_SIZE=auto`
+- `REMOVE_BG_TIMEOUT_MS=240000`
+- `REMOVE_BG_EDGE_CLEANUP=true`
+- `REMOVE_BG_EDGE_CLEAR_ALPHA=32`
+- `REMOVE_BG_EDGE_BLEND=0.92`
+- `REMOVE_BG_EDGE_ALPHA_REDUCTION=0.22`
 
 Se voce quiser subir apenas o servidor, sem abrir navegador automaticamente:
 

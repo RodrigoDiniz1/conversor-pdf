@@ -2,6 +2,10 @@ const http = require('http');
 const path = require('path');
 const { spawn } = require('child_process');
 
+const { loadEnvFile } = require('../backend/src/utils/envFile');
+
+loadEnvFile();
+
 const DEFAULT_PORT = 3000;
 const HEALTH_PATH = '/health';
 const HEALTH_TIMEOUT_MS = 30000;
