@@ -46,7 +46,7 @@ backend/
 - Conversao de um arquivo DOCX em um novo PDF textual
 - Conversao de um arquivo PPTX em um novo PDF textual
 - Download automatico do arquivo final
-- Limite de 100MB por arquivo
+- Limite de 20GB por arquivo
 - Limpeza de arquivos temporarios apos a resposta
 
 ## Pre-requisitos

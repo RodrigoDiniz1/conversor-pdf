@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 
 const uploadRoutes = require('./routes/uploadRoutes');
+const { getMergeMaxBytes } = require('./utils/systemLimits');
 
 const app = express();
 const publicPath = path.join(__dirname, '..', '..', 'frontend', 'public');
@@ -122,6 +123,11 @@ app.use('/upload', uploadRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Usado pelo frontend para informar o teto real de junção, que é limitado pela RAM.
+app.get('/limits', (_req, res) => {
+  res.json({ mergeMaxBytes: getMergeMaxBytes() });
 });
 
 app.use((err, _req, res, _next) => {

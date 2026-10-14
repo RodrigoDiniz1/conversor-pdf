@@ -9,6 +9,7 @@ const { pruneTemporaryArtifacts } = require('./utils/fileUtils');
 
 const HOST = process.env.HOST || '0.0.0.0';
 const PORT = process.env.PORT || 3000;
+const REQUEST_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 const tempRoot = path.join(__dirname, '..', 'tmp');
 
 const logStartupCleanup = (summary) => {
@@ -30,6 +31,8 @@ const server = app.listen(PORT, HOST, () => {
     .then(logStartupCleanup)
     .catch(logStartupCleanupError);
 });
+
+server.requestTimeout = REQUEST_TIMEOUT_MS;
 
 server.on('error', (error) => {
   if (error.code === 'EADDRINUSE') {

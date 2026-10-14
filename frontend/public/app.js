@@ -322,8 +322,10 @@ const DEFAULT_ACTIVE_TOOL_ID = toolSections.active[0];
 const REMOVE_BACKGROUND_TOOL_ID = 'remove-background';
 const MERGE_PDF_TOOL_ID = 'merge-pdf';
 const TOOL_HASH_PREFIX = '#tool=';
-const MAX_FILE_SIZE_BYTES = 1024 * 1024 * 1024;
-const MAX_FILE_SIZE_LABEL = '1GB';
+const BYTES_PER_GB = 1024 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 20 * BYTES_PER_GB;
+const MAX_FILE_SIZE_LABEL = '20GB';
+const UPLOAD_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 const BROWSER_BACKGROUND_REMOVAL_WORKER_URL = new URL('./background-removal-worker.js', window.location.href).href;
 const BROWSER_BACKGROUND_REMOVAL_PRIMARY_MODEL = 'isnet_fp16';
 const BROWSER_BACKGROUND_REMOVAL_FALLBACK_MODEL = 'isnet_quint8';
@@ -342,7 +344,10 @@ const state = {
 };
 
 const LOCAL_API_PORT = '3000';
+const MERGE_LIMIT_ENDPOINT = '/limits';
 let preferredApiBaseUrl = null;
+let mergeMaxBytes = null;
+let mergeLimitLoadPromise = null;
 let browserBackgroundRemovalWorker = null;
 let browserBackgroundRemovalWorkerRequestId = 0;
 let browserBackgroundRemovalModel = BROWSER_BACKGROUND_REMOVAL_PRIMARY_MODEL;
@@ -429,6 +434,7 @@ const selectionMeta = document.getElementById('selection-meta');
 const previewList = document.getElementById('preview-list');
 const clearButton = document.getElementById('clear-button');
 const submitButton = document.getElementById('submit-button');
+const mergeLimitNote = document.getElementById('merge-limit-note');
 const progressWrapper = document.getElementById('progress-wrapper');
 const progressFill = document.getElementById('progress-fill');
 const progressLabel = document.getElementById('progress-label');
@@ -532,11 +538,11 @@ const formatSize = (bytes) => {
     return `${(bytes / 1024).toFixed(1)} KB`;
   }
 
-  if (bytes < MAX_FILE_SIZE_BYTES) {
+  if (bytes < BYTES_PER_GB) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  return `${(bytes / MAX_FILE_SIZE_BYTES).toFixed(2)} GB`;
+  return `${(bytes / BYTES_PER_GB).toFixed(2)} GB`;
 };
 
 const getToolDropzoneSubtitle = (tool) => {
@@ -1104,6 +1110,7 @@ const syncToolView = () => {
   submitButton.disabled = state.isBusy || !tool.available || state.files.length === 0;
   submitButton.textContent = state.isBusy ? 'PROCESSANDO...' : (tool.submitLabel || 'Iniciar conversão');
   submitButton.classList.toggle('is-hidden', !shouldShowSubmitButton(tool));
+  renderMergeLimitNote();
   dropzone.classList.toggle('is-busy', state.isBusy);
   dropzone.classList.toggle('is-locked', !tool.available);
   dropzone.setAttribute('aria-disabled', String(!tool.available));
@@ -1493,6 +1500,63 @@ const getOrderedApiOriginCandidates = () => {
   return [preferredApiBaseUrl, ...candidates.filter((origin) => origin !== preferredApiBaseUrl)];
 };
 
+const getMergeLimitNote = (tool) => {
+  if (tool?.id !== MERGE_PDF_TOOL_ID || !Number.isFinite(mergeMaxBytes) || mergeMaxBytes <= 0) {
+    return '';
+  }
+
+  return `Limite máximo para esta junção: ${formatSize(mergeMaxBytes)} (definido pela memória do servidor).`;
+};
+
+const loadMergeMaxBytes = () => {
+  if (mergeLimitLoadPromise) {
+    return mergeLimitLoadPromise;
+  }
+
+  mergeLimitLoadPromise = (async () => {
+    for (const apiBaseUrl of getOrderedApiOriginCandidates()) {
+      try {
+        const response = await fetch(`${apiBaseUrl}${MERGE_LIMIT_ENDPOINT}`);
+
+        if (!response.ok) {
+          continue;
+        }
+
+        const payload = await response.json();
+        const value = Number(payload?.mergeMaxBytes);
+
+        if (Number.isFinite(value) && value > 0) {
+          mergeMaxBytes = Math.floor(value);
+          return mergeMaxBytes;
+        }
+      } catch (_error) {
+        // origem indisponivel: tenta a proxima
+      }
+    }
+
+    return null;
+  })();
+
+  return mergeLimitLoadPromise;
+};
+
+const renderMergeLimitNote = () => {
+  const tool = getCurrentTool();
+  const noteText = getMergeLimitNote(tool);
+
+  mergeLimitNote.textContent = noteText;
+  mergeLimitNote.classList.toggle('is-hidden', !noteText);
+
+  // Busca o limite uma unica vez; se falhar, nao insiste e o aviso fica oculto.
+  if (tool?.id === MERGE_PDF_TOOL_ID && mergeMaxBytes === null && !mergeLimitLoadPromise) {
+    void loadMergeMaxBytes().then(() => {
+      if (getCurrentTool()?.id === MERGE_PDF_TOOL_ID) {
+        renderMergeLimitNote();
+      }
+    });
+  }
+};
+
 const shouldRetryWithNextOrigin = (statusCode) => statusCode === 404 || statusCode === 405;
 
 const parseUploadErrorMessage = async (xhr) => {
@@ -1528,7 +1592,7 @@ const sendUploadRequest = ({ apiBaseUrl, tool }) => new Promise((resolve, reject
 
   xhr.open('POST', `${apiBaseUrl}${tool.endpoint}`, true);
   xhr.responseType = 'blob';
-  xhr.timeout = 240000;
+  xhr.timeout = UPLOAD_TIMEOUT_MS;
 
   xhr.upload.addEventListener('progress', (event) => {
     if (event.lengthComputable) {

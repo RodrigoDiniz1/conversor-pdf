@@ -11,7 +11,8 @@ const {
   createFriendlyName,
   createJobId,
   ensureDirectory,
-  normalizeBaseName
+  normalizeBaseName,
+  readFileAsBuffer
 } = require('../../utils/fileUtils');
 const {
   assertValidJpgFile,
@@ -629,7 +630,8 @@ const convertPdfToImages = async (file, extension = 'jpg') => {
 
   await assertValidPdfFile(file.path);
 
-  const pdfData = new Uint8Array(await fs.readFile(file.path));
+  const pdfBytes = await readFileAsBuffer(file.path);
+  const pdfData = new Uint8Array(pdfBytes.buffer, pdfBytes.byteOffset, pdfBytes.byteLength);
 
   await fs.mkdir(imageDir, { recursive: true });
 
@@ -713,7 +715,7 @@ const drawCenteredImage = (page, image, imageWidth, imageHeight, padding) => {
 };
 
 const appendImagePage = async (pdfDoc, file, embedImage) => {
-  const imageBytes = await fs.readFile(file.path);
+  const imageBytes = await readFileAsBuffer(file.path);
   const image = await embedImage(pdfDoc, imageBytes);
   const { width: imageWidth, height: imageHeight } = getImageDimensions(image);
   const page = pdfDoc.addPage(createPdfPageSize(imageWidth, imageHeight, IMAGE_TO_PDF_PADDING));
@@ -758,7 +760,7 @@ const convertPngsToPdf = (files) => convertImagesToPdf(files, {
 const appendPdfFilePages = async (targetPdfDoc, file) => {
   await assertValidPdfFile(file.path);
 
-  const sourcePdfBytes = await fs.readFile(file.path);
+  const sourcePdfBytes = await readFileAsBuffer(file.path);
   const sourcePdf = await PDFDocument.load(sourcePdfBytes);
   const copiedPages = await targetPdfDoc.copyPages(sourcePdf, sourcePdf.getPageIndices());
 
@@ -796,7 +798,7 @@ const buildSplitPdfPageName = (baseName, pageIndex) => {
 const splitPdfToZip = async (file) => {
   await assertValidPdfFile(file.path);
 
-  const inputBytes = await fs.readFile(file.path);
+  const inputBytes = await readFileAsBuffer(file.path);
   const sourcePdf = await PDFDocument.load(inputBytes);
   const outputName = normalizeBaseName(file.originalname);
   const jobDir = path.join(outputRoot, createJobId());
